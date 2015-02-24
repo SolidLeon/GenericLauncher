@@ -23,7 +23,7 @@ public class Logging {
 	/** Current LogLevel */
 	private LogLevel logLevel = LogLevel.DEBUG;
 	
-	public void setup() {
+	public Logging() {
 		try {
 			File logsFile = new File("logs");
 			if (!logsFile.exists()) logsFile.mkdir();
