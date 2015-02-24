@@ -61,6 +61,7 @@ public class Downloader {
 		logEmptyLine();
 		
 		
+		// SERVER LIST BEGIN
 		List<ServerListEntry> serverList = new ArrayList<>();
 		readServerList(serverList, new File("serverlist.txt"));
 		if (serverList.isEmpty()) {
@@ -81,7 +82,9 @@ public class Downloader {
 		}
 		
 		logInfo("Selected server '" + serverSelectionObject + "'");
+		// SERVER LIST END
 		
+		// LAUNCHER CONFIGS (*.cfg) BEGIN
 		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry)serverSelectionObject).basePath);
 		if (launcherConfigList.isEmpty()) {
 			logInfo("No launcher configurations found!");
@@ -110,6 +113,9 @@ public class Downloader {
 		logDebug("  POST COMMAND=     '" + launcherConfig.getPostCommand() + "'");
 		logDebug("  POST CWD=         '" + launcherConfig.getPostCWD().getAbsolutePath() + "'");
 		logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel() + "'");
+		// LAUNCHER CONFIGS (*.cfg) END
+		
+		// DOWNLOAD CONFIGS (v_*) BEGIN
 		for (File f : launcherConfig.getDownloadConfigs())
 			logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath() + "'");
 		if (launcherConfig.getLogLevel() != null) {
@@ -120,10 +126,12 @@ public class Downloader {
 		List<DownloadConfig> remoteConfigs = new LinkedList<>();
 		
 		if (launcherConfig.getDownloadConfigs().isEmpty())
-			readConfigs(remoteConfigs, launcherConfig, Arrays.asList(launcherConfig.getBasePath().listFiles()));
+			readDownloadConfigs(remoteConfigs, launcherConfig, Arrays.asList(launcherConfig.getBasePath().listFiles()));
 		else
-			readConfigs(remoteConfigs, launcherConfig, launcherConfig.getDownloadConfigs());
+			readDownloadConfigs(remoteConfigs, launcherConfig, launcherConfig.getDownloadConfigs());
+		// DOWNLOAD CONFIGS (v_*) END
 		
+		// ACTUAL DOWNLOAD BEGIN
 		logEmptyLine();
 		logDebug("BEGIN DOWNLOAD");
 		for (DownloadConfig cfg : remoteConfigs) {
@@ -140,7 +148,9 @@ public class Downloader {
 			}
 		}
 		logDebug("DONE!");
+		// ACTUAL DOWNLOAD END
 		
+		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar").lastModified();
 		if (bootstrapUpdated) {
 			logDebug("Bootstrap update! Restart!");
@@ -161,7 +171,7 @@ public class Downloader {
 				printException(e);
 			}
 		} else {
-
+			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN 'POST_CWD'
 			if (launcherConfig.getPostCommand() != null) {
 				try {
 					logInfo("Execute '" + launcherConfig.getPostCommand() + "' ...");
@@ -177,6 +187,11 @@ public class Downloader {
 		
 	}
 
+	/**
+	 * Reads a list of NAME=SERVER_PATH from a text file 
+	 * @param serverList
+	 * @param file
+	 */
 	private static void readServerList(List<ServerListEntry> serverList,
 			File file) {
 		try {
@@ -193,11 +208,14 @@ public class Downloader {
 				serverList.add(entry);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			printException(e); // markusmannel@gmail.com 20150224 Utilize our exception-to-file mechanism
 		}
 	}
 
+	/**
+	 * Prints the passed exception to an unique error file
+	 * @param e
+	 */
 	protected static void printException(Throwable e) {
 		try (PrintStream exout = new PrintStream("ERROR_" + UUID.randomUUID().toString() + ".txt")) {
 			e.printStackTrace(exout);
@@ -206,6 +224,11 @@ public class Downloader {
 		}
 	}
 
+	/**
+	 * Scans for launcher configurations (*.cfg files)
+	 * @param file - a directory containing cfg files
+	 * @return a list containing all cfg files withing 'file'
+	 */
 	private static List<File> getLauncherConfigList(File file) {
 		logDebug("Load launcher configurations from '" + file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
@@ -224,6 +247,12 @@ public class Downloader {
 		return configurationList;
 	}
 
+	/**
+	 * Reads the launcher configuration file (cfg) and creates a new
+	 * {@link LauncherConfig} 
+	 * @param launcherConfigFile
+	 * @return
+	 */
 	private static LauncherConfig readLauncherConfig(File launcherConfigFile) {
 		LauncherConfig cfg = new LauncherConfig();
 		
@@ -249,8 +278,13 @@ public class Downloader {
 					downloadConfigList.add(new File(sDownloadConfig));
 				}
 			}
-			
+
+			// Download configs post-setup
 			cfg.setDownloadConfigs(downloadConfigList);
+			//   we need to adjust relative paths and combine them with the basePath (remote path)
+			//   Detailed: The path is relative on the remote machine, but new File(path) would create a relative path
+			//			   on the local machine, so we would not be able to access the right file.
+			//			   So we use the remote base path to create a new File pointing to the remote
 			for (int i = 0; i < downloadConfigList.size(); i++) {
 				File f = downloadConfigList.get(i);
 				if (!f.isAbsolute()) {
@@ -258,6 +292,7 @@ public class Downloader {
 					downloadConfigList.set(i, f);
 				}
 			}
+			// If the config does not provide a 'POST_CWD' we set it to this jars CWD.
 			if (cfg.getPostCWD() == null) {
 				cfg.setPostCWD(new File(System.getProperty("user.dir")));
 			}
@@ -272,11 +307,11 @@ public class Downloader {
 	
 
 
-	private static void readConfigs(List<DownloadConfig> remoteConfigs,
+	private static void readDownloadConfigs(List<DownloadConfig> remoteConfigs,
 			LauncherConfig launcherConfig,
 			List<File> dir) {
 		for (File remoteConfigFile : dir) {
-			DownloadConfig cfg = createDownloadConfig(launcherConfig.getBasePath(), remoteConfigFile);
+			DownloadConfig cfg = readDownloadConfig(launcherConfig.getBasePath(), remoteConfigFile);
 			if (cfg.getSource().isDirectory()) {
 				addDownloadConfigsRecursivly(remoteConfigs, cfg.getSource(), cfg.getTarget(), cfg.getSource());
 			} else {
@@ -310,6 +345,10 @@ public class Downloader {
 		}
 	}
 
+	/**
+	 * Copy files using {@link Files#copy(java.nio.file.Path, java.nio.file.Path, java.nio.file.CopyOption...)}
+	 * @param cfg
+	 */
 	private static void download(DownloadConfig cfg) {
 		try {
 			logInfo("  DOWNLOADING ...");
@@ -323,9 +362,6 @@ public class Downloader {
 		}
 	}
 
-	private static void logInfo() {
-		logInfo("");
-	}
 	private static void logInfo(String s) {
 		log(LogLevel.INFO, s);
 	}
@@ -341,7 +377,13 @@ public class Downloader {
 		System.out.println();
 	}
 
-	private static DownloadConfig createDownloadConfig(File basePath, File remoteFile) {
+	/**
+	 * Parse remote file and create a new {@link DownloadConfig}
+	 * @param basePath
+	 * @param remoteFile
+	 * @return
+	 */
+	private static DownloadConfig readDownloadConfig(File basePath, File remoteFile) {
 		DownloadConfig cfg = new DownloadConfig();
 		cfg.setName(remoteFile.getName());
 		
@@ -378,6 +420,11 @@ public class Downloader {
 	}
 
 
+	/**
+	 * v_* files
+	 * @author Markus
+	 *
+	 */
 	static class DownloadConfig {
 		private String name;
 		private File source;
@@ -419,6 +466,11 @@ public class Downloader {
 		}
 	}
 	
+	/**
+	 * *.cfg files
+	 * @author Markus
+	 *
+	 */
 	static class LauncherConfig {
 		private File basePath;
 		private String postCommand;
@@ -468,6 +520,11 @@ public class Downloader {
 		
 	}
 	
+	/**
+	 * serverlist.txt entries
+	 * @author Markus
+	 *
+	 */
 	static class ServerListEntry {
 		private String name;
 		private File basePath;
