@@ -366,25 +366,6 @@ public class Launcher implements Runnable {
 		}
 	}
 
-	/**
-	 * Copy files using
-	 * {@link Files#copy(java.nio.file.Path, java.nio.file.Path, java.nio.file.CopyOption...)}
-	 * 
-	 * @param cfg
-	 */
-	private void download(DownloadConfig cfg) {
-		try {
-			logging.logInfo("  DOWNLOADING ...");
-			logging.logInfo("  [" + cfg.getVersion() + "] " + "'"
-					+ cfg.getSource().getAbsolutePath() + "'" + " -> " + "'"
-					+ cfg.getTarget().getAbsolutePath() + "'");
-			cfg.getTarget().mkdirs();
-			Files.copy(cfg.getSource().toPath(), cfg.getTarget().toPath(),
-					StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			logging.printException(e);
-		}
-	}
 
 	/**
 	 * Parse remote file and create a new {@link DownloadConfig}
