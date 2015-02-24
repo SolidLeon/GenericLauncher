@@ -15,12 +15,12 @@ import javax.swing.JOptionPane;
 
 import launcher.Logging.LogLevel;
 
-public class Downloader implements Runnable {
+public class Launcher implements Runnable {
 
 	private Logging logging;
 	
 	public static void main(String[] args) {
-		new Thread(new Downloader()).start();
+		new Thread(new Launcher()).start();
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class Downloader implements Runnable {
 		long bootstrapModified = new File("bootstrap.jar").lastModified();
 
 		logging.logInfo("Launcher "
-				+ Downloader.class.getPackage().getImplementationVersion()
+				+ Launcher.class.getPackage().getImplementationVersion()
 				+ " started");
 		logging.logInfo("Current Time is " + new Date().toString());
 		logging.logInfo("System.getProperty('os.name') == '"
@@ -89,7 +89,7 @@ public class Downloader implements Runnable {
 			logging.logDebug("User selects configuration...");
 			selection = JOptionPane.showInputDialog(null,
 					"Select a configuration:", "Launcher "
-							+ Downloader.class.getPackage()
+							+ Launcher.class.getPackage()
 									.getImplementationVersion(),
 					JOptionPane.QUESTION_MESSAGE, null,
 					launcherConfigList.toArray(), launcherConfigList.get(0));
