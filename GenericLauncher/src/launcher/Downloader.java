@@ -43,6 +43,7 @@ public class Downloader {
 			}
 		});
 		
+		// SETUP LOGGING BEGIN
 		try {
 			File logsFile = new File("logs");
 			if (!logsFile.exists()) logsFile.mkdir();
@@ -52,6 +53,7 @@ public class Downloader {
 		}
 		
 		System.setOut(ps);
+		// SETUP LOGGING END
 		
 		long bootstrapModified = new File("bootstrap.jar").lastModified();
 		
