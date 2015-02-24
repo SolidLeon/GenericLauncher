@@ -34,12 +34,7 @@ public class Logging {
 		
 		System.setOut(ps);
 		
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				printException(e);
-			}
-		});
+		Thread.setDefaultUncaughtExceptionHandler((t, e) -> printException(e));
 	}
 	/**
 	 * Prints the passed exception to an unique error file
