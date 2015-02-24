@@ -126,27 +126,8 @@ public class Launcher implements Runnable {
 					launcherConfig.getDownloadConfigs());
 		// DOWNLOAD CONFIGS (v_*) END
 
-		// ACTUAL DOWNLOAD BEGIN
-		logging.logEmptyLine();
-		logging.logDebug("BEGIN DOWNLOAD");
-		for (DownloadConfig cfg : remoteConfigs) {
-			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
-			File sourceComparisonFile = cfg.getCompare() != null ? cfg
-					.getCompare() : cfg.getTarget();
-			logging.logDebug("  COMPARE= '"
-					+ sourceComparisonFile.getAbsolutePath() + "'");
-			if (cfg.getSource().lastModified() > sourceComparisonFile
-					.lastModified())
-				download(cfg);
-			else {
-				logging.logDebug("  SKIP ALREADY UPDATE");
-				logging.logDebug("  [" + cfg.getVersion() + "] " + "'"
-						+ cfg.getSource().getAbsolutePath() + "'" + " -> "
-						+ "'" + cfg.getTarget().getAbsolutePath() + "'");
-			}
-		}
-		logging.logDebug("DONE!");
-		// ACTUAL DOWNLOAD END
+		Downloader d = new Downloader(logging, remoteConfigs);
+		d.run();
 
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar")
