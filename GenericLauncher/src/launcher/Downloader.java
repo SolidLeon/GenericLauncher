@@ -57,9 +57,7 @@ public class Downloader implements Runnable {
 		List<ServerListEntry> serverList = new ArrayList<>();
 		readServerList(serverList, new File("serverlist.txt"));
 		if (serverList.isEmpty()) {
-			logging.logInfo("No server found!");
-			logging.close();
-			System.exit(0);
+			exit(1, "No server found!");
 		}
 
 		logging.logInfo(serverList.size() + " server loaded!");
@@ -70,9 +68,7 @@ public class Downloader implements Runnable {
 					JOptionPane.QUESTION_MESSAGE, null, serverList.toArray(),
 					serverList.get(0));
 			if (serverSelectionObject == null) {
-				logging.logInfo("No configuration selected!");
-				logging.close();
-				System.exit(0);
+				exit(2, "No configuration selected!");
 			}
 		}
 
@@ -83,9 +79,7 @@ public class Downloader implements Runnable {
 		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry) serverSelectionObject)
 				.getBasePath());
 		if (launcherConfigList.isEmpty()) {
-			logging.logInfo("No launcher configurations found!");
-			logging.close();
-			System.exit(0);
+			exit(3, "No launcher configurations found!");
 		}
 
 		logging.logInfo(launcherConfigList.size()
@@ -100,9 +94,7 @@ public class Downloader implements Runnable {
 					JOptionPane.QUESTION_MESSAGE, null,
 					launcherConfigList.toArray(), launcherConfigList.get(0));
 			if (selection == null) {
-				logging.logInfo("No configuration selected!");
-				logging.close();
-				System.exit(0);
+				exit(0, "No configuration selected!");
 			}
 		}
 		logging.logInfo("Selected launcher config '" + selection + "'");
@@ -162,18 +154,16 @@ public class Downloader implements Runnable {
 		if (bootstrapUpdated) {
 			logging.logDebug("Bootstrap update! Restart!");
 			try {
-				logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
-				System.exit(0);
+				exit(0, "Bootstrap update! Restart!");
 			} catch (IOException e) {
 				logging.printException(e);
 			}
 		} else if (new File("launcher_new.jar").exists()) {
 			logging.logDebug("Launcher update! Restart!");
 			try {
-				logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
-				System.exit(0);
+				exit(0, "Launcher update! Restart!");
 			} catch (IOException e) {
 				logging.printException(e);
 			}
@@ -191,11 +181,17 @@ public class Downloader implements Runnable {
 				}
 			}
 
-			logging.close();
-			System.exit(0);
+			exit(0, "Launcher finished!");
 		}
 	}
 	
+	private void exit(int exitCode, String msg) {
+		// TODO Auto-generated method stub
+		logging.logInfo(msg);
+		logging.close();
+		System.exit(exitCode);
+	}
+
 	/**
 	 * Reads a list of NAME=SERVER_PATH from a text file
 	 * 
