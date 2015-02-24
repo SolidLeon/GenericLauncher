@@ -53,50 +53,13 @@ public class Launcher implements Runnable {
 				+ System.getProperty("sun.arch.data.model") + "'");
 		logging.logEmptyLine();
 
-		// SERVER LIST BEGIN
 		ServerListContainer serverListContainer = new ServerListContainer(logging);
 		serverListContainer.run();
-		// SERVER LIST END
 
-		// LAUNCHER CONFIGS (*.cfg) BEGIN
-		List<File> launcherConfigList = getLauncherConfigList((serverListContainer.getSelected()).getBasePath());
-		if (launcherConfigList.isEmpty()) {
-			exit(3, "No launcher configurations found!");
-		}
+		LauncherConfigContainer launcherConfigContainer = new LauncherConfigContainer(logging, serverListContainer.getSelected());
+		launcherConfigContainer.run();
 
-		logging.logInfo(launcherConfigList.size()
-				+ " launcher configuration(s) loaded!");
-		Object selection = launcherConfigList.get(0);
-		if (launcherConfigList.size() > 1) {
-			logging.logDebug("User selects configuration...");
-			selection = JOptionPane.showInputDialog(null,
-					"Select a configuration:", "Launcher "
-							+ Launcher.class.getPackage()
-									.getImplementationVersion(),
-					JOptionPane.QUESTION_MESSAGE, null,
-					launcherConfigList.toArray(), launcherConfigList.get(0));
-			if (selection == null) {
-				exit(0, "No configuration selected!");
-			}
-		}
-		logging.logInfo("Selected launcher config '" + selection + "'");
-		LauncherConfig launcherConfig = readLauncherConfig((File) selection);
-		logging.logDebug("Launcher Config     '" + ((File) selection).getName()
-				+ "'");
-		logging.logDebug("  BASE PATH=        '"
-				+ launcherConfig.getBasePath().getAbsolutePath() + "'");
-		logging.logDebug("  POST COMMAND=     '"
-				+ launcherConfig.getPostCommand() + "'");
-		logging.logDebug("  POST CWD=         '"
-				+ launcherConfig.getPostCWD().getAbsolutePath() + "'");
-		logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel()
-				+ "'");
-		for (File f : launcherConfig.getDownloadConfigs())
-			logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
-					+ "'");
-		// LAUNCHER CONFIGS (*.cfg) END
-
-		DownloadConfigContainer downloadConfigContainer = new DownloadConfigContainer(logging, launcherConfig);
+		DownloadConfigContainer downloadConfigContainer = new DownloadConfigContainer(logging, launcherConfigContainer.getSelectedLauncherConfig());
 		downloadConfigContainer.run();
 
 		Downloader downloader = new Downloader(logging, downloadConfigContainer.getRemoteConfigs());
@@ -124,12 +87,12 @@ public class Launcher implements Runnable {
 		} else {
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
 			// 'POST_CWD'
-			if (launcherConfig.getPostCommand() != null) {
+			if (launcherConfigContainer.getSelectedLauncherConfig().getPostCommand() != null) {
 				try {
 					logging.logInfo("Execute '"
-							+ launcherConfig.getPostCommand() + "' ...");
-					Runtime.getRuntime().exec(launcherConfig.getPostCommand(),
-							null, launcherConfig.getPostCWD());
+							+ launcherConfigContainer.getSelectedLauncherConfig().getPostCommand() + "' ...");
+					Runtime.getRuntime().exec(launcherConfigContainer.getSelectedLauncherConfig().getPostCommand(),
+							null, launcherConfigContainer.getSelectedLauncherConfig().getPostCWD());
 				} catch (IOException e) {
 					logging.printException(e);
 				}
@@ -147,100 +110,4 @@ public class Launcher implements Runnable {
 	}
 
 
-	/**
-	 * Scans for launcher configurations (*.cfg files)
-	 * 
-	 * @param file
-	 *            - a directory containing cfg files
-	 * @return a list containing all cfg files withing 'file'
-	 */
-	private List<File> getLauncherConfigList(File file) {
-		logging.logDebug("Load launcher configurations from '"
-				+ file.getAbsolutePath() + "'");
-		if (!file.isDirectory()) {
-			logging.logDebug("This is not a directory!");
-			logging.logDebug(file.getAbsolutePath());
-			return null;
-		}
-		List<File> configurationList = new ArrayList<>();
-		for (File f : file.listFiles()) {
-			if (f.getName().endsWith(".cfg")) {
-				logging.logDebug("  ADD '" + f.getAbsolutePath() + "'");
-				configurationList.add(f);
-			}
-		}
-		logging.logDebug("DONE!");
-		return configurationList;
-	}
-
-	/**
-	 * Reads the launcher configuration file (cfg) and creates a new
-	 * {@link LauncherConfig}
-	 * 
-	 * @param launcherConfigFile
-	 * @return
-	 */
-	private LauncherConfig readLauncherConfig(File launcherConfigFile) {
-		LauncherConfig cfg = new LauncherConfig();
-
-		try {
-			List<String> lines = Files
-					.readAllLines(launcherConfigFile.toPath());
-			List<File> downloadConfigList = new ArrayList<>();
-
-			for (String line : lines) {
-				if (line.startsWith("BASE_PATH=")) {
-					String sBasePath = line.substring("BASE_PATH=".length());
-					cfg.setBasePath(new File(sBasePath));
-				} else if (line.startsWith("POST_COMMAND=")) {
-					String sPostCommand = line.substring("POST_COMMAND="
-							.length());
-					cfg.setPostCommand(sPostCommand);
-				} else if (line.startsWith("POST_CWD=")) {
-					String sPostCWD = line.substring("POST_CWD=".length());
-					cfg.setPostCWD(new File(sPostCWD));
-				} else if (line.startsWith("LOG_LEVEL=")) {
-					String sLogLevel = line.substring("LOG_LEVEL=".length());
-					cfg.setLogLevel(LogLevel.valueOf(sLogLevel));
-				} else if (line.startsWith("DOWNLOAD_CONFIG=")) {
-					String sDownloadConfig = line.substring("DOWNLOAD_CONFIG="
-							.length());
-					downloadConfigList.add(new File(sDownloadConfig));
-				}
-			}
-
-			// Download configs post-setup
-			cfg.setDownloadConfigs(downloadConfigList);
-			// we need to adjust relative paths and combine them with the
-			// basePath (remote path)
-			// Detailed: The path is relative on the remote machine, but new
-			// File(path) would create a relative path
-			// on the local machine, so we would not be able to access the right
-			// file.
-			// So we use the remote base path to create a new File pointing to
-			// the remote
-			for (int i = 0; i < downloadConfigList.size(); i++) {
-				File f = downloadConfigList.get(i);
-				if (!f.isAbsolute()) {
-					f = new File(cfg.getBasePath(), f.getPath());
-					downloadConfigList.set(i, f);
-				}
-			}
-			// If the config does not provide a 'POST_CWD' we set it to this
-			// jars CWD.
-			if (cfg.getPostCWD() == null) {
-				cfg.setPostCWD(new File(System.getProperty("user.dir")));
-			}
-
-			// Set default log level
-			if (cfg.getLogLevel() == null)
-				cfg.setLogLevel(LogLevel.DEBUG);
-
-		} catch (IOException e) {
-			logging.printException(e);
-			return null;
-		}
-
-		return cfg;
-	}
 }
