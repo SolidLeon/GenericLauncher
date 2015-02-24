@@ -60,7 +60,7 @@ public class Logging {
 		log(LogLevel.DEBUG, s);
 	}
 	public void log(LogLevel logLevel, String s) {
-		if (logLevel == logLevel) {
+		if (logLevel == this.logLevel) {
 			System.out.println("["+sdf.format(new Date())+" "+logLevel.name()+"]: " + s);
 		}
 	}
