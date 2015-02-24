@@ -12,7 +12,7 @@ public class LauncherRestartController implements Runnable {
 
 	private Logging logging;
 	private long bootstrapModified;
-	private PackageBean activeLauncherConfig;
+	private PackageBean activePackageBean;
 	
 	public LauncherRestartController(Logging logging) {
 		super();
@@ -20,8 +20,8 @@ public class LauncherRestartController implements Runnable {
 		bootstrapModified = new File("bootstrap.jar").lastModified();
 	}
 
-	public void setActiveLauncherConfig(PackageBean activeLauncherConfig) {
-		this.activeLauncherConfig = activeLauncherConfig;
+	public void setActivePackageBean(PackageBean activePackageBean) {
+		this.activePackageBean = activePackageBean;
 	}
 	
 	@Override
@@ -48,12 +48,12 @@ public class LauncherRestartController implements Runnable {
 		} else {
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
 			// 'POST_CWD'
-			if (activeLauncherConfig.getPostCommand() != null) {
+			if (activePackageBean.getPostCommand() != null) {
 				try {
 					logging.logInfo("Execute '"
-							+ activeLauncherConfig.getPostCommand() + "' ...");
-					Runtime.getRuntime().exec(activeLauncherConfig.getPostCommand(),
-							null, activeLauncherConfig.getPostCWD());
+							+ activePackageBean.getPostCommand() + "' ...");
+					Runtime.getRuntime().exec(activePackageBean.getPostCommand(),
+							null, activePackageBean.getPostCWD());
 				} catch (IOException e) {
 					logging.printException(e);
 				}

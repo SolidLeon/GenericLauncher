@@ -40,9 +40,9 @@ public class Launcher implements Runnable {
 
 		PackageController packageController = new PackageController(logging, serverListController.getSelected());
 		packageController.run();
-		launcherRestartController.setActiveLauncherConfig(packageController.getSelectedLauncherConfig());
+		launcherRestartController.setActivePackageBean(packageController.getSelectedPackageBean());
 
-		ComponentController componentController = new ComponentController(logging, packageController.getSelectedLauncherConfig());
+		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
 		componentController.run();
 
 		Downloader downloader = new Downloader(logging, componentController.getRemoteConfigs());

@@ -27,7 +27,7 @@ public class PackageController implements Runnable {
 		this.selectedServer = selectedServer;
 	}
 	
-	public PackageBean getSelectedLauncherConfig() {
+	public PackageBean getSelectedPackageBean() {
 		return selectedPackageBean;
 	}
 
