@@ -27,7 +27,7 @@ public class Downloader {
 		DEBUG,
 		INFO
 	};
-	private static LogLevel logLevel = LogLevel.INFO;
+	private static LogLevel logLevel = LogLevel.DEBUG;
 	
 	public static void main(String[] args) {
 		
