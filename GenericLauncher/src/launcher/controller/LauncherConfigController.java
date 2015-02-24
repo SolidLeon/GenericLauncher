@@ -52,21 +52,20 @@ public class LauncherConfigController implements Runnable {
 			if (selection == null) {
 				return; //No configuration selected, or user cancelled
 			}
-			selectedLauncherConfig = (LauncherConfig) selection;
 		}
 		logging.logInfo("Selected launcher config '" + selection + "'");
-		LauncherConfig launcherConfig = readLauncherConfig((File) selection);
+		selectedLauncherConfig = readLauncherConfig((File) selection);
 		logging.logDebug("Launcher Config     '" + ((File) selection).getName()
 				+ "'");
 		logging.logDebug("  BASE PATH=        '"
-				+ launcherConfig.getBasePath().getAbsolutePath() + "'");
+				+ selectedLauncherConfig.getBasePath().getAbsolutePath() + "'");
 		logging.logDebug("  POST COMMAND=     '"
-				+ launcherConfig.getPostCommand() + "'");
+				+ selectedLauncherConfig.getPostCommand() + "'");
 		logging.logDebug("  POST CWD=         '"
-				+ launcherConfig.getPostCWD().getAbsolutePath() + "'");
-		logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel()
+				+ selectedLauncherConfig.getPostCWD().getAbsolutePath() + "'");
+		logging.logDebug("  LOG LEVEL=        '" + selectedLauncherConfig.getLogLevel()
 				+ "'");
-		for (File f : launcherConfig.getDownloadConfigs())
+		for (File f : selectedLauncherConfig.getDownloadConfigs())
 			logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
 					+ "'");
 	}
