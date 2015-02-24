@@ -17,6 +17,8 @@ import launcher.Logging.LogLevel;
 
 public class Downloader implements Runnable {
 
+	private Logging logging;
+	
 	public static void main(String[] args) {
 		new Thread(new Downloader()).start();
 	}
@@ -24,41 +26,43 @@ public class Downloader implements Runnable {
 	@Override
 	public void run() {
 
-		Logging.setup();
+		logging = new Logging();
+		
+		logging.setup();
 
-		// SETUP LOGGING BEGIN
-		// SETUP LOGGING END
+		// SETUP logging BEGIN
+		// SETUP logging END
 
 		long bootstrapModified = new File("bootstrap.jar").lastModified();
 
-		Logging.logInfo("Launcher "
+		logging.logInfo("Launcher "
 				+ Downloader.class.getPackage().getImplementationVersion()
 				+ " started");
-		Logging.logInfo("Current Time is " + new Date().toString());
-		Logging.logInfo("System.getProperty('os.name') == '"
+		logging.logInfo("Current Time is " + new Date().toString());
+		logging.logInfo("System.getProperty('os.name') == '"
 				+ System.getProperty("os.name") + "'");
-		Logging.logInfo("System.getProperty('os.version') == '"
+		logging.logInfo("System.getProperty('os.version') == '"
 				+ System.getProperty("os.version") + "'");
-		Logging.logInfo("System.getProperty('os.arch') == '"
+		logging.logInfo("System.getProperty('os.arch') == '"
 				+ System.getProperty("os.arch") + "'");
-		Logging.logInfo("System.getProperty('java.version') == '"
+		logging.logInfo("System.getProperty('java.version') == '"
 				+ System.getProperty("java.version") + "'");
-		Logging.logInfo("System.getProperty('java.vendor') == '"
+		logging.logInfo("System.getProperty('java.vendor') == '"
 				+ System.getProperty("java.vendor") + "'");
-		Logging.logInfo("System.getProperty('sun.arch.data.model') == '"
+		logging.logInfo("System.getProperty('sun.arch.data.model') == '"
 				+ System.getProperty("sun.arch.data.model") + "'");
-		Logging.logEmptyLine();
+		logging.logEmptyLine();
 
 		// SERVER LIST BEGIN
 		List<ServerListEntry> serverList = new ArrayList<>();
 		readServerList(serverList, new File("serverlist.txt"));
 		if (serverList.isEmpty()) {
-			Logging.logInfo("No server found!");
-			Logging.close();
+			logging.logInfo("No server found!");
+			logging.close();
 			System.exit(0);
 		}
 
-		Logging.logInfo(serverList.size() + " server loaded!");
+		logging.logInfo(serverList.size() + " server loaded!");
 		Object serverSelectionObject = serverList.get(0);
 		if (serverList.size() > 1) {
 			serverSelectionObject = JOptionPane.showInputDialog(null,
@@ -66,29 +70,29 @@ public class Downloader implements Runnable {
 					JOptionPane.QUESTION_MESSAGE, null, serverList.toArray(),
 					serverList.get(0));
 			if (serverSelectionObject == null) {
-				Logging.logInfo("No configuration selected!");
-				Logging.close();
+				logging.logInfo("No configuration selected!");
+				logging.close();
 				System.exit(0);
 			}
 		}
 
-		Logging.logInfo("Selected server '" + serverSelectionObject + "'");
+		logging.logInfo("Selected server '" + serverSelectionObject + "'");
 		// SERVER LIST END
 
 		// LAUNCHER CONFIGS (*.cfg) BEGIN
 		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry) serverSelectionObject)
 				.getBasePath());
 		if (launcherConfigList.isEmpty()) {
-			Logging.logInfo("No launcher configurations found!");
-			Logging.close();
+			logging.logInfo("No launcher configurations found!");
+			logging.close();
 			System.exit(0);
 		}
 
-		Logging.logInfo(launcherConfigList.size()
+		logging.logInfo(launcherConfigList.size()
 				+ " launcher configuration(s) loaded!");
 		Object selection = launcherConfigList.get(0);
 		if (launcherConfigList.size() > 1) {
-			Logging.logDebug("User selects configuration...");
+			logging.logDebug("User selects configuration...");
 			selection = JOptionPane.showInputDialog(null,
 					"Select a configuration:", "Launcher "
 							+ Downloader.class.getPackage()
@@ -96,28 +100,28 @@ public class Downloader implements Runnable {
 					JOptionPane.QUESTION_MESSAGE, null,
 					launcherConfigList.toArray(), launcherConfigList.get(0));
 			if (selection == null) {
-				Logging.logInfo("No configuration selected!");
-				Logging.close();
+				logging.logInfo("No configuration selected!");
+				logging.close();
 				System.exit(0);
 			}
 		}
-		Logging.logInfo("Selected launcher config '" + selection + "'");
+		logging.logInfo("Selected launcher config '" + selection + "'");
 		LauncherConfig launcherConfig = readLauncherConfig((File) selection);
-		Logging.logDebug("Launcher Config     '" + ((File) selection).getName()
+		logging.logDebug("Launcher Config     '" + ((File) selection).getName()
 				+ "'");
-		Logging.logDebug("  BASE PATH=        '"
+		logging.logDebug("  BASE PATH=        '"
 				+ launcherConfig.getBasePath().getAbsolutePath() + "'");
-		Logging.logDebug("  POST COMMAND=     '"
+		logging.logDebug("  POST COMMAND=     '"
 				+ launcherConfig.getPostCommand() + "'");
-		Logging.logDebug("  POST CWD=         '"
+		logging.logDebug("  POST CWD=         '"
 				+ launcherConfig.getPostCWD().getAbsolutePath() + "'");
-		Logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel()
+		logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel()
 				+ "'");
 		// LAUNCHER CONFIGS (*.cfg) END
 
 		// DOWNLOAD CONFIGS (v_*) BEGIN
 		for (File f : launcherConfig.getDownloadConfigs())
-			Logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
+			logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
 					+ "'");
 
 		List<DownloadConfig> remoteConfigs = new LinkedList<>();
@@ -131,63 +135,63 @@ public class Downloader implements Runnable {
 		// DOWNLOAD CONFIGS (v_*) END
 
 		// ACTUAL DOWNLOAD BEGIN
-		Logging.logEmptyLine();
-		Logging.logDebug("BEGIN DOWNLOAD");
+		logging.logEmptyLine();
+		logging.logDebug("BEGIN DOWNLOAD");
 		for (DownloadConfig cfg : remoteConfigs) {
-			Logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
+			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
 			File sourceComparisonFile = cfg.getCompare() != null ? cfg
 					.getCompare() : cfg.getTarget();
-			Logging.logDebug("  COMPARE= '"
+			logging.logDebug("  COMPARE= '"
 					+ sourceComparisonFile.getAbsolutePath() + "'");
 			if (cfg.getSource().lastModified() > sourceComparisonFile
 					.lastModified())
 				download(cfg);
 			else {
-				Logging.logDebug("  SKIP ALREADY UPDATE");
-				Logging.logDebug("  [" + cfg.getVersion() + "] " + "'"
+				logging.logDebug("  SKIP ALREADY UPDATE");
+				logging.logDebug("  [" + cfg.getVersion() + "] " + "'"
 						+ cfg.getSource().getAbsolutePath() + "'" + " -> "
 						+ "'" + cfg.getTarget().getAbsolutePath() + "'");
 			}
 		}
-		Logging.logDebug("DONE!");
+		logging.logDebug("DONE!");
 		// ACTUAL DOWNLOAD END
 
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar")
 				.lastModified();
 		if (bootstrapUpdated) {
-			Logging.logDebug("Bootstrap update! Restart!");
+			logging.logDebug("Bootstrap update! Restart!");
 			try {
-				Logging.close();
+				logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				System.exit(0);
 			} catch (IOException e) {
-				Logging.printException(e);
+				logging.printException(e);
 			}
 		} else if (new File("launcher_new.jar").exists()) {
-			Logging.logDebug("Launcher update! Restart!");
+			logging.logDebug("Launcher update! Restart!");
 			try {
-				Logging.close();
+				logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				System.exit(0);
 			} catch (IOException e) {
-				Logging.printException(e);
+				logging.printException(e);
 			}
 		} else {
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
 			// 'POST_CWD'
 			if (launcherConfig.getPostCommand() != null) {
 				try {
-					Logging.logInfo("Execute '"
+					logging.logInfo("Execute '"
 							+ launcherConfig.getPostCommand() + "' ...");
 					Runtime.getRuntime().exec(launcherConfig.getPostCommand(),
 							null, launcherConfig.getPostCWD());
 				} catch (IOException e) {
-					Logging.printException(e);
+					logging.printException(e);
 				}
 			}
 
-			Logging.close();
+			logging.close();
 			System.exit(0);
 		}
 	}
@@ -215,7 +219,7 @@ public class Downloader implements Runnable {
 				serverList.add(entry);
 			}
 		} catch (IOException e) {
-			Logging.printException(e); // markusmannel@gmail.com 20150224
+			logging.printException(e); // markusmannel@gmail.com 20150224
 										// Utilize our exception-to-file
 										// mechanism
 		}
@@ -229,21 +233,21 @@ public class Downloader implements Runnable {
 	 * @return a list containing all cfg files withing 'file'
 	 */
 	private List<File> getLauncherConfigList(File file) {
-		Logging.logDebug("Load launcher configurations from '"
+		logging.logDebug("Load launcher configurations from '"
 				+ file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
-			Logging.logDebug("This is not a directory!");
-			Logging.logDebug(file.getAbsolutePath());
+			logging.logDebug("This is not a directory!");
+			logging.logDebug(file.getAbsolutePath());
 			return null;
 		}
 		List<File> configurationList = new ArrayList<>();
 		for (File f : file.listFiles()) {
 			if (f.getName().endsWith(".cfg")) {
-				Logging.logDebug("  ADD '" + f.getAbsolutePath() + "'");
+				logging.logDebug("  ADD '" + f.getAbsolutePath() + "'");
 				configurationList.add(f);
 			}
 		}
-		Logging.logDebug("DONE!");
+		logging.logDebug("DONE!");
 		return configurationList;
 	}
 
@@ -311,7 +315,7 @@ public class Downloader implements Runnable {
 				cfg.setLogLevel(LogLevel.DEBUG);
 
 		} catch (IOException e) {
-			Logging.printException(e);
+			logging.printException(e);
 			return null;
 		}
 
@@ -328,17 +332,17 @@ public class Downloader implements Runnable {
 						cfg.getTarget(), cfg.getSource());
 			} else {
 				remoteConfigs.add(cfg);
-				Logging.logDebug("Download Config '" + cfg.getName() + "'");
-				Logging.logDebug("  SOURCE=  '"
+				logging.logDebug("Download Config '" + cfg.getName() + "'");
+				logging.logDebug("  SOURCE=  '"
 						+ cfg.getSource().getAbsolutePath() + "'");
-				Logging.logDebug("  TARGET=  '"
+				logging.logDebug("  TARGET=  '"
 						+ cfg.getTarget().getAbsolutePath() + "'");
-				Logging.logDebug("  COMPARE= '"
+				logging.logDebug("  COMPARE= '"
 						+ (cfg.getCompare() == null ? "None" : cfg.getCompare()
 								.getAbsolutePath()) + "'");
 			}
 		}
-		Logging.logDebug("DONE");
+		logging.logDebug("DONE");
 	}
 
 	private void addDownloadConfigsRecursivly(
@@ -350,12 +354,12 @@ public class Downloader implements Runnable {
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(
 					basePath.getAbsolutePath().length())));
 			cfg.setName(source.getName() + UUID.randomUUID().toString());
-			Logging.logDebug("Download Config '" + cfg.getName() + "'");
-			Logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()
+			logging.logDebug("Download Config '" + cfg.getName() + "'");
+			logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()
 					+ "'");
-			Logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()
+			logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()
 					+ "'");
-			Logging.logDebug("  COMPARE= '"
+			logging.logDebug("  COMPARE= '"
 					+ (cfg.getCompare() == null ? "None" : cfg.getCompare()
 							.getAbsolutePath()) + "'");
 			remoteConfigs.add(cfg);
@@ -374,15 +378,15 @@ public class Downloader implements Runnable {
 	 */
 	private void download(DownloadConfig cfg) {
 		try {
-			Logging.logInfo("  DOWNLOADING ...");
-			Logging.logInfo("  [" + cfg.getVersion() + "] " + "'"
+			logging.logInfo("  DOWNLOADING ...");
+			logging.logInfo("  [" + cfg.getVersion() + "] " + "'"
 					+ cfg.getSource().getAbsolutePath() + "'" + " -> " + "'"
 					+ cfg.getTarget().getAbsolutePath() + "'");
 			cfg.getTarget().mkdirs();
 			Files.copy(cfg.getSource().toPath(), cfg.getTarget().toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			Logging.printException(e);
+			logging.printException(e);
 		}
 	}
 
@@ -423,7 +427,7 @@ public class Downloader implements Runnable {
 			}
 
 		} catch (IOException e) {
-			Logging.printException(e);
+			logging.printException(e);
 			return null;
 		}
 
