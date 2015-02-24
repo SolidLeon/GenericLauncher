@@ -26,7 +26,7 @@ public class Downloader {
 	/** Logging SimpleDateFormat */
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	/** LogLevel */
-	private static enum LogLevel {
+	public static enum LogLevel {
 		DEBUG,
 		INFO
 	};
@@ -92,7 +92,7 @@ public class Downloader {
 		// SERVER LIST END
 		
 		// LAUNCHER CONFIGS (*.cfg) BEGIN
-		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry)serverSelectionObject).basePath);
+		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry)serverSelectionObject).getBasePath());
 		if (launcherConfigList.isEmpty()) {
 			logInfo("No launcher configurations found!");
 			ps.close();
@@ -142,10 +142,10 @@ public class Downloader {
 		logEmptyLine();
 		logDebug("BEGIN DOWNLOAD");
 		for (DownloadConfig cfg : remoteConfigs) {
-			logDebug("CHECK DOWNLOAD '" + cfg.name + "'");
-			File sourceComparisonFile = cfg.compare != null ? cfg.compare : cfg.target;
+			logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
+			File sourceComparisonFile = cfg.getCompare() != null ? cfg.getCompare() : cfg.getTarget();
 			logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
-			if (cfg.source.lastModified() > sourceComparisonFile.lastModified())
+			if (cfg.getSource().lastModified() > sourceComparisonFile.lastModified())
 				download(cfg);
 			else  {
 				logDebug("  SKIP ALREADY UPDATE");
@@ -426,132 +426,134 @@ public class Downloader {
 		return cfg;
 	}
 
+}
 
-	/**
-	 * v_* files
-	 * @author Markus
-	 *
-	 */
-	static class DownloadConfig {
-		private String name;
-		private File source;
-		private File target;
-		private File compare;
-		private int version;
-		
-		
-		
-		public File getCompare() {
-			return compare;
-		}
-		public void setCompare(File compare) {
-			this.compare = compare;
-		}
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		public File getSource() {
-			return source;
-		}
-		public void setSource(File source) {
-			this.source = source;
-		}
-		public File getTarget() {
-			return target;
-		}
-		public void setTarget(File target) {
-			this.target = target;
-		}
-		public int getVersion() {
-			return version;
-		}
-		public void setVersion(int version) {
-			this.version = version;
-		}
+
+
+/**
+ * v_* files
+ * @author Markus
+ *
+ */
+class DownloadConfig {
+	private String name;
+	private File source;
+	private File target;
+	private File compare;
+	private int version;
+	
+	
+	
+	public File getCompare() {
+		return compare;
+	}
+	public void setCompare(File compare) {
+		this.compare = compare;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public File getSource() {
+		return source;
+	}
+	public void setSource(File source) {
+		this.source = source;
+	}
+	public File getTarget() {
+		return target;
+	}
+	public void setTarget(File target) {
+		this.target = target;
+	}
+	public int getVersion() {
+		return version;
+	}
+	public void setVersion(int version) {
+		this.version = version;
+	}
+}
+
+/**
+ * *.cfg files
+ * @author Markus
+ *
+ */
+class LauncherConfig {
+	private File basePath;
+	private String postCommand;
+	private File postCWD;
+	private Downloader.LogLevel logLevel;
+	private List<File> downloadConfigs;
+	
+	public List<File> getDownloadConfigs() {
+		return downloadConfigs;
+	}
+
+	public void setDownloadConfigs(List<File> downloadConfigs) {
+		this.downloadConfigs = downloadConfigs;
+	}
+
+	public Downloader.LogLevel getLogLevel() {
+		return logLevel;
+	}
+
+	public void setLogLevel(Downloader.LogLevel logLevel) {
+		this.logLevel = logLevel;
+	}
+
+	public File getPostCWD() {
+		return postCWD;
+	}
+
+	public void setPostCWD(File postCWD) {
+		this.postCWD = postCWD;
+	}
+
+	public String getPostCommand() {
+		return postCommand;
+	}
+
+	public void setPostCommand(String postCommand) {
+		this.postCommand = postCommand;
+	}
+
+	public File getBasePath() {
+		return basePath;
+	}
+
+	public void setBasePath(File basePath) {
+		this.basePath = basePath;
 	}
 	
-	/**
-	 * *.cfg files
-	 * @author Markus
-	 *
-	 */
-	static class LauncherConfig {
-		private File basePath;
-		private String postCommand;
-		private File postCWD;
-		private LogLevel logLevel;
-		private List<File> downloadConfigs;
-		
-		public List<File> getDownloadConfigs() {
-			return downloadConfigs;
-		}
+}
 
-		public void setDownloadConfigs(List<File> downloadConfigs) {
-			this.downloadConfigs = downloadConfigs;
-		}
-
-		public LogLevel getLogLevel() {
-			return logLevel;
-		}
-
-		public void setLogLevel(LogLevel logLevel) {
-			this.logLevel = logLevel;
-		}
-
-		public File getPostCWD() {
-			return postCWD;
-		}
-
-		public void setPostCWD(File postCWD) {
-			this.postCWD = postCWD;
-		}
-
-		public String getPostCommand() {
-			return postCommand;
-		}
-
-		public void setPostCommand(String postCommand) {
-			this.postCommand = postCommand;
-		}
-
-		public File getBasePath() {
-			return basePath;
-		}
-
-		public void setBasePath(File basePath) {
-			this.basePath = basePath;
-		}
-		
+/**
+ * serverlist.txt entries
+ * @author Markus
+ *
+ */
+class ServerListEntry {
+	private String name;
+	private File basePath;
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public File getBasePath() {
+		return basePath;
+	}
+	public void setBasePath(File basePath) {
+		this.basePath = basePath;
 	}
 	
-	/**
-	 * serverlist.txt entries
-	 * @author Markus
-	 *
-	 */
-	static class ServerListEntry {
-		private String name;
-		private File basePath;
-		public String getName() {
-			return name;
-		}
-		public void setName(String name) {
-			this.name = name;
-		}
-		public File getBasePath() {
-			return basePath;
-		}
-		public void setBasePath(File basePath) {
-			this.basePath = basePath;
-		}
-		
-		@Override
-		public String toString() {
-			return name + " (" + basePath.getAbsolutePath() + ")";
-		}
-		
+	@Override
+	public String toString() {
+		return name + " (" + basePath.getAbsolutePath() + ")";
 	}
+	
 }
