@@ -33,6 +33,8 @@ public class PackageController implements Runnable {
 
 	@Override
 	public void run() {
+		if (selectedServer == null)
+			return;
 		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
 		if (packageBeanList.isEmpty()) {
 			return; //No launcher configurations found!
