@@ -8,7 +8,7 @@ import java.io.File;
  * @author Markus
  *
  */
-public class DownloadConfig {
+public class ComponentBean {
 	private String name;
 	private File source;
 	private File target;

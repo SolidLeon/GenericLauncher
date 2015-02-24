@@ -6,14 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
-import launcher.beans.DownloadConfig;
+import launcher.beans.ComponentBean;
 
 public class Downloader {
 
 	private Logging logging;
-	private List<DownloadConfig> remoteConfigs;
+	private List<ComponentBean> remoteConfigs;
 	
-	public Downloader(Logging logging, List<DownloadConfig> remoteConfigs) {
+	public Downloader(Logging logging, List<ComponentBean> remoteConfigs) {
 		super();
 		this.logging = logging;
 		this.remoteConfigs = remoteConfigs;
@@ -22,7 +22,7 @@ public class Downloader {
 	public void run() {
 		logging.logEmptyLine();
 		logging.logDebug("BEGIN DOWNLOAD");
-		for (DownloadConfig cfg : remoteConfigs) {
+		for (ComponentBean cfg : remoteConfigs) {
 			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
 			File sourceComparisonFile = cfg.getCompare() != null ? cfg
 					.getCompare() : cfg.getTarget();
@@ -47,7 +47,7 @@ public class Downloader {
 	 * 
 	 * @param cfg
 	 */
-	private void download(DownloadConfig cfg) {
+	private void download(ComponentBean cfg) {
 		try {
 			logging.logInfo("  DOWNLOADING ...");
 			logging.logInfo("  [" + cfg.getVersion() + "] " + "'"

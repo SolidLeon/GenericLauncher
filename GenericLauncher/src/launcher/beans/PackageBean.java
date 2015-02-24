@@ -12,19 +12,19 @@ import launcher.Logging.LogLevel;
  * @author Markus
  *
  */
-public class LauncherConfig {
+public class PackageBean {
 	private File basePath;
 	private String postCommand;
 	private File postCWD;
 	private LogLevel logLevel;
-	private List<File> downloadConfigs;
+	private List<File> componentFiles;
 
-	public List<File> getDownloadConfigs() {
-		return downloadConfigs;
+	public List<File> getComponentFiles() {
+		return componentFiles;
 	}
 
-	public void setDownloadConfigs(List<File> downloadConfigs) {
-		this.downloadConfigs = downloadConfigs;
+	public void setComponentFiles(List<File> componentFiles) {
+		this.componentFiles = componentFiles;
 	}
 
 	public LogLevel getLogLevel() {

@@ -11,62 +11,62 @@ import javax.swing.JOptionPane;
 import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
-import launcher.beans.LauncherConfig;
+import launcher.beans.PackageBean;
 import launcher.beans.ServerListEntry;
 
-public class LauncherConfigController implements Runnable {
+public class PackageController implements Runnable {
 
 	private Logging logging;
 	private ServerListEntry selectedServer;
-	private LauncherConfig selectedLauncherConfig;
+	private PackageBean selectedPackageBean;
 	
-	public LauncherConfigController(Logging logging,
+	public PackageController(Logging logging,
 			ServerListEntry selectedServer) {
 		super();
 		this.logging = logging;
 		this.selectedServer = selectedServer;
 	}
 	
-	public LauncherConfig getSelectedLauncherConfig() {
-		return selectedLauncherConfig;
+	public PackageBean getSelectedLauncherConfig() {
+		return selectedPackageBean;
 	}
 
 	@Override
 	public void run() {
-		List<File> launcherConfigList = getLauncherConfigList(selectedServer.getBasePath());
-		if (launcherConfigList.isEmpty()) {
+		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
+		if (packageBeanList.isEmpty()) {
 			return; //No launcher configurations found!
 		}
 
-		logging.logInfo(launcherConfigList.size()
-				+ " launcher configuration(s) loaded!");
-		Object selection = launcherConfigList.get(0);
-		if (launcherConfigList.size() > 1) {
-			logging.logDebug("User selects configuration...");
+		logging.logInfo(packageBeanList.size()
+				+ " packages(s) loaded!");
+		Object selection = packageBeanList.get(0);
+		if (packageBeanList.size() > 1) {
+			logging.logDebug("User selects package ...");
 			selection = JOptionPane.showInputDialog(null,
-					"Select a configuration:", "Launcher "
+					"Select a package:", "Launcher "
 							+ Launcher.class.getPackage()
 									.getImplementationVersion(),
 					JOptionPane.QUESTION_MESSAGE, null,
-					launcherConfigList.toArray(), launcherConfigList.get(0));
+					packageBeanList.toArray(), packageBeanList.get(0));
 			if (selection == null) {
 				return; //No configuration selected, or user cancelled
 			}
 		}
-		logging.logInfo("Selected launcher config '" + selection + "'");
-		selectedLauncherConfig = readLauncherConfig((File) selection);
-		logging.logDebug("Launcher Config     '" + ((File) selection).getName()
+		logging.logInfo("Selected package '" + selection + "'");
+		selectedPackageBean = readPackageBean((File) selection);
+		logging.logDebug("Package             '" + ((File) selection).getName()
 				+ "'");
 		logging.logDebug("  BASE PATH=        '"
-				+ selectedLauncherConfig.getBasePath().getAbsolutePath() + "'");
+				+ selectedPackageBean.getBasePath().getAbsolutePath() + "'");
 		logging.logDebug("  POST COMMAND=     '"
-				+ selectedLauncherConfig.getPostCommand() + "'");
+				+ selectedPackageBean.getPostCommand() + "'");
 		logging.logDebug("  POST CWD=         '"
-				+ selectedLauncherConfig.getPostCWD().getAbsolutePath() + "'");
-		logging.logDebug("  LOG LEVEL=        '" + selectedLauncherConfig.getLogLevel()
+				+ selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
+		logging.logDebug("  LOG LEVEL=        '" + selectedPackageBean.getLogLevel()
 				+ "'");
-		for (File f : selectedLauncherConfig.getDownloadConfigs())
-			logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
+		for (File f : selectedPackageBean.getComponentFiles())
+			logging.logDebug("  COMPONENT=        '" + f.getAbsolutePath()
 					+ "'");
 	}
 	
@@ -77,8 +77,8 @@ public class LauncherConfigController implements Runnable {
 	 *            - a directory containing cfg files
 	 * @return a list containing all cfg files withing 'file'
 	 */
-	private List<File> getLauncherConfigList(File file) {
-		logging.logDebug("Load launcher configurations from '"
+	private List<File> getPackageBeanList(File file) {
+		logging.logDebug("Load package(s) from '"
 				+ file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
 			logging.logDebug("This is not a directory!");
@@ -98,18 +98,18 @@ public class LauncherConfigController implements Runnable {
 
 	/**
 	 * Reads the launcher configuration file (cfg) and creates a new
-	 * {@link LauncherConfig}
+	 * {@link PackageBean}
 	 * 
-	 * @param launcherConfigFile
+	 * @param packageBeanFile
 	 * @return
 	 */
-	private LauncherConfig readLauncherConfig(File launcherConfigFile) {
-		LauncherConfig cfg = new LauncherConfig();
+	private PackageBean readPackageBean(File packageBeanFile) {
+		PackageBean cfg = new PackageBean();
 
 		try {
 			List<String> lines = Files
-					.readAllLines(launcherConfigFile.toPath());
-			List<File> downloadConfigList = new ArrayList<>();
+					.readAllLines(packageBeanFile.toPath());
+			List<File> componentFileList = new ArrayList<>();
 
 			for (String line : lines) {
 				if (line.startsWith("BASE_PATH=")) {
@@ -126,14 +126,14 @@ public class LauncherConfigController implements Runnable {
 					String sLogLevel = line.substring("LOG_LEVEL=".length());
 					cfg.setLogLevel(LogLevel.valueOf(sLogLevel));
 				} else if (line.startsWith("DOWNLOAD_CONFIG=")) {
-					String sDownloadConfig = line.substring("DOWNLOAD_CONFIG="
+					String sComponentFile = line.substring("DOWNLOAD_CONFIG="
 							.length());
-					downloadConfigList.add(new File(sDownloadConfig));
+					componentFileList.add(new File(sComponentFile));
 				}
 			}
 
 			// Download configs post-setup
-			cfg.setDownloadConfigs(downloadConfigList);
+			cfg.setComponentFiles(componentFileList);
 			// we need to adjust relative paths and combine them with the
 			// basePath (remote path)
 			// Detailed: The path is relative on the remote machine, but new
@@ -142,11 +142,11 @@ public class LauncherConfigController implements Runnable {
 			// file.
 			// So we use the remote base path to create a new File pointing to
 			// the remote
-			for (int i = 0; i < downloadConfigList.size(); i++) {
-				File f = downloadConfigList.get(i);
+			for (int i = 0; i < componentFileList.size(); i++) {
+				File f = componentFileList.get(i);
 				if (!f.isAbsolute()) {
 					f = new File(cfg.getBasePath(), f.getPath());
-					downloadConfigList.set(i, f);
+					componentFileList.set(i, f);
 				}
 			}
 			// If the config does not provide a 'POST_CWD' we set it to this

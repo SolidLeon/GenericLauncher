@@ -14,8 +14,8 @@ import java.util.UUID;
 import javax.swing.JOptionPane;
 
 import launcher.Logging.LogLevel;
-import launcher.controller.DownloadConfigController;
-import launcher.controller.LauncherConfigController;
+import launcher.controller.ComponentController;
+import launcher.controller.PackageController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.ServerListController;
 
@@ -31,25 +31,25 @@ public class Launcher implements Runnable {
 	public void run() {
 		logging = new Logging();
 		
-		LauncherRestartController launcherRestartChecker = new LauncherRestartController(logging);
+		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
 		logBasicInfo();
 
-		ServerListController serverListContainer = new ServerListController(logging);
-		serverListContainer.run();
+		ServerListController serverListController = new ServerListController(logging);
+		serverListController.run();
 
-		LauncherConfigController launcherConfigContainer = new LauncherConfigController(logging, serverListContainer.getSelected());
-		launcherConfigContainer.run();
-		launcherRestartChecker.setActiveLauncherConfig(launcherConfigContainer.getSelectedLauncherConfig());
+		PackageController packageController = new PackageController(logging, serverListController.getSelected());
+		packageController.run();
+		launcherRestartController.setActiveLauncherConfig(packageController.getSelectedLauncherConfig());
 
-		DownloadConfigController downloadConfigContainer = new DownloadConfigController(logging, launcherConfigContainer.getSelectedLauncherConfig());
-		downloadConfigContainer.run();
+		ComponentController componentController = new ComponentController(logging, packageController.getSelectedLauncherConfig());
+		componentController.run();
 
-		Downloader downloader = new Downloader(logging, downloadConfigContainer.getRemoteConfigs());
+		Downloader downloader = new Downloader(logging, componentController.getRemoteConfigs());
 		downloader.run();
 
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-		launcherRestartChecker.run();
+		launcherRestartController.run();
 	}
 
 	private void logBasicInfo() {

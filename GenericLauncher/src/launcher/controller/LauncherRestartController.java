@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 
 import launcher.Logging;
-import launcher.beans.LauncherConfig;
+import launcher.beans.PackageBean;
 
 public class LauncherRestartController implements Runnable {
 
 	private Logging logging;
 	private long bootstrapModified;
-	private LauncherConfig activeLauncherConfig;
+	private PackageBean activeLauncherConfig;
 	
 	public LauncherRestartController(Logging logging) {
 		super();
@@ -18,7 +18,7 @@ public class LauncherRestartController implements Runnable {
 		bootstrapModified = new File("bootstrap.jar").lastModified();
 	}
 
-	public void setActiveLauncherConfig(LauncherConfig activeLauncherConfig) {
+	public void setActiveLauncherConfig(PackageBean activeLauncherConfig) {
 		this.activeLauncherConfig = activeLauncherConfig;
 	}
 	

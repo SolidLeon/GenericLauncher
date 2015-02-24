@@ -9,46 +9,44 @@ import java.util.List;
 import java.util.UUID;
 
 import launcher.Logging;
-import launcher.beans.DownloadConfig;
-import launcher.beans.LauncherConfig;
+import launcher.beans.ComponentBean;
+import launcher.beans.PackageBean;
 
-public class DownloadConfigController implements Runnable {
+public class ComponentController implements Runnable {
 
 	
 	private Logging logging;
-	private LauncherConfig launcherConfig;
-	private List<DownloadConfig> remoteConfigs = new LinkedList<>();
+	private PackageBean packageBean;
+	private List<ComponentBean> remoteComponents = new LinkedList<>();
 	
-	public DownloadConfigController(Logging logging,
-			LauncherConfig launcherConfig) {
+	public ComponentController(Logging logging,
+			PackageBean launcherConfig) {
 		super();
 		this.logging = logging;
-		this.launcherConfig = launcherConfig;
+		this.packageBean = launcherConfig;
 	}
 	
-	public List<DownloadConfig> getRemoteConfigs() {
-		return remoteConfigs;
+	public List<ComponentBean> getRemoteConfigs() {
+		return remoteComponents;
 	}
 
 	@Override
 	public void run() {
-		
-
-		if (launcherConfig.getDownloadConfigs().isEmpty())
-			readDownloadConfigs(remoteConfigs, launcherConfig,
-					Arrays.asList(launcherConfig.getBasePath().listFiles()));
+		if (packageBean.getComponentFiles().isEmpty())
+			readComponentBeans(remoteComponents, packageBean,
+					Arrays.asList(packageBean.getBasePath().listFiles()));
 		else
-			readDownloadConfigs(remoteConfigs, launcherConfig,
-					launcherConfig.getDownloadConfigs());	
+			readComponentBeans(remoteComponents, packageBean,
+					packageBean.getComponentFiles());	
 	}
 
-	private void readDownloadConfigs(List<DownloadConfig> remoteConfigs,
-			LauncherConfig launcherConfig, List<File> dir) {
+	private void readComponentBeans(List<ComponentBean> remoteConfigs,
+			PackageBean launcherConfig, List<File> dir) {
 		for (File remoteConfigFile : dir) {
-			DownloadConfig cfg = readDownloadConfig(
+			ComponentBean cfg = readComponentBean(
 					launcherConfig.getBasePath(), remoteConfigFile);
 			if (cfg.getSource().isDirectory()) {
-				addDownloadConfigsRecursivly(remoteConfigs, cfg.getSource(),
+				addComponentBeansRecursivly(remoteConfigs, cfg.getSource(),
 						cfg.getTarget(), cfg.getSource());
 			} else {
 				remoteConfigs.add(cfg);
@@ -65,11 +63,11 @@ public class DownloadConfigController implements Runnable {
 		logging.logDebug("DONE");
 	}
 
-	private void addDownloadConfigsRecursivly(
-			List<DownloadConfig> remoteConfigs, File basePath, File target,
+	private void addComponentBeansRecursivly(
+			List<ComponentBean> remoteConfigs, File basePath, File target,
 			File source) {
 		if (source.isFile()) {
-			DownloadConfig cfg = new DownloadConfig();
+			ComponentBean cfg = new ComponentBean();
 			cfg.setSource(source);
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(
 					basePath.getAbsolutePath().length())));
@@ -85,22 +83,22 @@ public class DownloadConfigController implements Runnable {
 			remoteConfigs.add(cfg);
 		} else {
 			for (File ff : source.listFiles())
-				addDownloadConfigsRecursivly(remoteConfigs, basePath, target,
+				addComponentBeansRecursivly(remoteConfigs, basePath, target,
 						ff);
 		}
 	}
 
 
 	/**
-	 * Parse remote file and create a new {@link DownloadConfig}
+	 * Parse remote file and create a new {@link ComponentBean}
 	 * 
 	 * @param basePath
 	 * @param remoteFile
 	 * @return
 	 */
-	private DownloadConfig readDownloadConfig(File basePath,
+	private ComponentBean readComponentBean(File basePath,
 			File remoteFile) {
-		DownloadConfig cfg = new DownloadConfig();
+		ComponentBean cfg = new ComponentBean();
 		cfg.setName(remoteFile.getName());
 
 		try {
