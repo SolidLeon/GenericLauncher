@@ -1,17 +1,18 @@
-package launcher;
+package launcher.controller;
 
 import java.io.File;
 import java.io.IOException;
 
+import launcher.Logging;
 import launcher.beans.LauncherConfig;
 
-public class LauncherRestartChecker implements Runnable {
+public class LauncherRestartController implements Runnable {
 
 	private Logging logging;
 	private long bootstrapModified;
 	private LauncherConfig activeLauncherConfig;
 	
-	public LauncherRestartChecker(Logging logging) {
+	public LauncherRestartController(Logging logging) {
 		super();
 		this.logging = logging;
 		bootstrapModified = new File("bootstrap.jar").lastModified();

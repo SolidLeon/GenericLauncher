@@ -1,4 +1,4 @@
-package launcher;
+package launcher.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,17 +8,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import launcher.Logging;
 import launcher.beans.DownloadConfig;
 import launcher.beans.LauncherConfig;
 
-public class DownloadConfigContainer implements Runnable {
+public class DownloadConfigController implements Runnable {
 
 	
 	private Logging logging;
 	private LauncherConfig launcherConfig;
 	private List<DownloadConfig> remoteConfigs = new LinkedList<>();
 	
-	public DownloadConfigContainer(Logging logging,
+	public DownloadConfigController(Logging logging,
 			LauncherConfig launcherConfig) {
 		super();
 		this.logging = logging;

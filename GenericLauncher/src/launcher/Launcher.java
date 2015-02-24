@@ -14,6 +14,10 @@ import java.util.UUID;
 import javax.swing.JOptionPane;
 
 import launcher.Logging.LogLevel;
+import launcher.controller.DownloadConfigController;
+import launcher.controller.LauncherConfigController;
+import launcher.controller.LauncherRestartController;
+import launcher.controller.ServerListController;
 
 public class Launcher implements Runnable {
 
@@ -27,18 +31,18 @@ public class Launcher implements Runnable {
 	public void run() {
 		logging = new Logging();
 		
-		LauncherRestartChecker launcherRestartChecker = new LauncherRestartChecker(logging);
+		LauncherRestartController launcherRestartChecker = new LauncherRestartController(logging);
 
 		logBasicInfo();
 
-		ServerListContainer serverListContainer = new ServerListContainer(logging);
+		ServerListController serverListContainer = new ServerListController(logging);
 		serverListContainer.run();
 
-		LauncherConfigContainer launcherConfigContainer = new LauncherConfigContainer(logging, serverListContainer.getSelected());
+		LauncherConfigController launcherConfigContainer = new LauncherConfigController(logging, serverListContainer.getSelected());
 		launcherConfigContainer.run();
 		launcherRestartChecker.setActiveLauncherConfig(launcherConfigContainer.getSelectedLauncherConfig());
 
-		DownloadConfigContainer downloadConfigContainer = new DownloadConfigContainer(logging, launcherConfigContainer.getSelectedLauncherConfig());
+		DownloadConfigController downloadConfigContainer = new DownloadConfigController(logging, launcherConfigContainer.getSelectedLauncherConfig());
 		downloadConfigContainer.run();
 
 		Downloader downloader = new Downloader(logging, downloadConfigContainer.getRemoteConfigs());

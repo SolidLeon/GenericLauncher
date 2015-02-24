@@ -1,4 +1,4 @@
-package launcher;
+package launcher.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,16 +8,17 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import launcher.Logging;
 import launcher.beans.ServerListEntry;
 
-public class ServerListContainer implements Runnable {
+public class ServerListController implements Runnable {
 
 	private Logging logging;
 	private List<ServerListEntry> serverList = new ArrayList<>();
 	private ServerListEntry selected;
 	
 	
-	public ServerListContainer(Logging logging) {
+	public ServerListController(Logging logging) {
 		super();
 		this.logging = logging;
 	}

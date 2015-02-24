@@ -1,4 +1,4 @@
-package launcher;
+package launcher.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,17 +8,19 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import launcher.Launcher;
+import launcher.Logging;
 import launcher.Logging.LogLevel;
 import launcher.beans.LauncherConfig;
 import launcher.beans.ServerListEntry;
 
-public class LauncherConfigContainer implements Runnable {
+public class LauncherConfigController implements Runnable {
 
 	private Logging logging;
 	private ServerListEntry selectedServer;
 	private LauncherConfig selectedLauncherConfig;
 	
-	public LauncherConfigContainer(Logging logging,
+	public LauncherConfigController(Logging logging,
 			ServerListEntry selectedServer) {
 		super();
 		this.logging = logging;
