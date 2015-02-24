@@ -3,6 +3,7 @@ package launcher;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -32,6 +33,13 @@ public class Logging {
 		}
 		
 		System.setOut(ps);
+		
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				Logging.printException(e);
+			}
+		});
 	}
 	/**
 	 * Prints the passed exception to an unique error file

@@ -24,13 +24,6 @@ public class Downloader {
 		
 		Logging.setup();
 		
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(Thread t, Throwable e) {
-				Logging.printException(e);
-			}
-		});
-		
 		// SETUP LOGGING BEGIN
 		// SETUP LOGGING END
 		
