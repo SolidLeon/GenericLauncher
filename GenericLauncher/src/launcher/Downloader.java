@@ -21,13 +21,18 @@ import javax.swing.JOptionPane;
 
 public class Downloader {
 
+	/** Logging PrintStream */
 	private static PrintStream ps;
+	/** Logging SimpleDateFormat */
 	private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+	/** LogLevel */
 	private static enum LogLevel {
 		DEBUG,
 		INFO
 	};
+	/** Current LogLevel */
 	private static LogLevel logLevel = LogLevel.DEBUG;
+	
 	
 	public static void main(String[] args) {
 		
