@@ -109,12 +109,12 @@ public class Downloader implements Runnable {
 				+ launcherConfig.getPostCWD().getAbsolutePath() + "'");
 		logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel()
 				+ "'");
-		// LAUNCHER CONFIGS (*.cfg) END
-
-		// DOWNLOAD CONFIGS (v_*) BEGIN
 		for (File f : launcherConfig.getDownloadConfigs())
 			logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath()
 					+ "'");
+		// LAUNCHER CONFIGS (*.cfg) END
+
+		// DOWNLOAD CONFIGS (v_*) BEGIN
 
 		List<DownloadConfig> remoteConfigs = new LinkedList<>();
 
