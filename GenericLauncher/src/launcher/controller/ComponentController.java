@@ -32,6 +32,8 @@ public class ComponentController implements Runnable {
 
 	@Override
 	public void run() {
+		if (packageBean == null)
+			return;
 		if (packageBean.getComponentFiles().isEmpty())
 			readComponentBeans(remoteComponents, packageBean,
 					Arrays.asList(packageBean.getBasePath().listFiles()));
