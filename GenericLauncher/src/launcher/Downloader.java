@@ -1,134 +1,109 @@
 package launcher;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.jar.JarInputStream;
 
 import javax.swing.JOptionPane;
 
+import launcher.Logging.LogLevel;
+
 
 public class Downloader {
-
-	/** Logging PrintStream */
-	private static PrintStream ps;
-	/** Logging SimpleDateFormat */
-	private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-	/** LogLevel */
-	public static enum LogLevel {
-		DEBUG,
-		INFO
-	};
-	/** Current LogLevel */
-	private static LogLevel logLevel = LogLevel.DEBUG;
 	
 	
 	public static void main(String[] args) {
 		
+		Logging.setup();
+		
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				printException(e);
+				Logging.printException(e);
 			}
 		});
 		
 		// SETUP LOGGING BEGIN
-		try {
-			File logsFile = new File("logs");
-			if (!logsFile.exists()) logsFile.mkdir();
-			ps = new PrintStream(new File(logsFile, "log_" + UUID.randomUUID().toString() + ".txt"));
-		} catch (FileNotFoundException e) {
-			printException(e);
-		}
-		
-		System.setOut(ps);
 		// SETUP LOGGING END
 		
 		long bootstrapModified = new File("bootstrap.jar").lastModified();
 		
-		logInfo("Launcher " + Downloader.class.getPackage().getImplementationVersion() + " started");
-		logInfo("Current Time is " + new Date().toString());
-		logInfo("System.getProperty('os.name') == '" + System.getProperty("os.name") + "'");
-		logInfo("System.getProperty('os.version') == '" + System.getProperty("os.version") + "'");
-		logInfo("System.getProperty('os.arch') == '" + System.getProperty("os.arch") + "'");
-		logInfo("System.getProperty('java.version') == '" + System.getProperty("java.version") + "'");
-		logInfo("System.getProperty('java.vendor') == '" + System.getProperty("java.vendor") + "'");
-		logInfo("System.getProperty('sun.arch.data.model') == '" + System.getProperty("sun.arch.data.model") + "'");
-		logEmptyLine();
+		Logging.logInfo("Launcher " + Downloader.class.getPackage().getImplementationVersion() + " started");
+		Logging.logInfo("Current Time is " + new Date().toString());
+		Logging.logInfo("System.getProperty('os.name') == '" + System.getProperty("os.name") + "'");
+		Logging.logInfo("System.getProperty('os.version') == '" + System.getProperty("os.version") + "'");
+		Logging.logInfo("System.getProperty('os.arch') == '" + System.getProperty("os.arch") + "'");
+		Logging.logInfo("System.getProperty('java.version') == '" + System.getProperty("java.version") + "'");
+		Logging.logInfo("System.getProperty('java.vendor') == '" + System.getProperty("java.vendor") + "'");
+		Logging.logInfo("System.getProperty('sun.arch.data.model') == '" + System.getProperty("sun.arch.data.model") + "'");
+		Logging.logEmptyLine();
 		
 		
 		// SERVER LIST BEGIN
 		List<ServerListEntry> serverList = new ArrayList<>();
 		readServerList(serverList, new File("serverlist.txt"));
 		if (serverList.isEmpty()) {
-			logInfo("No server found!");
-			ps.close();
+			Logging.logInfo("No server found!");
+			Logging.close();;
 			System.exit(0);
 		}
 		
-		logInfo(serverList.size() + " server loaded!");
+		Logging.logInfo(serverList.size() + " server loaded!");
 		Object serverSelectionObject = serverList.get(0);
 		if (serverList.size() > 1) {
 			serverSelectionObject = JOptionPane.showInputDialog(null, "Select a server you want to connect to: ", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverList.toArray(), serverList.get(0));
 			if (serverSelectionObject == null) {
-				logInfo("No configuration selected!");
-				ps.close();
+				Logging.logInfo("No configuration selected!");
+				Logging.close();;
 				System.exit(0);
 			}
 		}
 		
-		logInfo("Selected server '" + serverSelectionObject + "'");
+		Logging.logInfo("Selected server '" + serverSelectionObject + "'");
 		// SERVER LIST END
 		
 		// LAUNCHER CONFIGS (*.cfg) BEGIN
 		List<File> launcherConfigList = getLauncherConfigList(((ServerListEntry)serverSelectionObject).getBasePath());
 		if (launcherConfigList.isEmpty()) {
-			logInfo("No launcher configurations found!");
-			ps.close();
+			Logging.logInfo("No launcher configurations found!");
+			Logging.close();
 			System.exit(0);
 		}
 		
-		logInfo(launcherConfigList.size() + " launcher configuration(s) loaded!");
+		Logging.logInfo(launcherConfigList.size() + " launcher configuration(s) loaded!");
 		Object selection = launcherConfigList.get(0);
 		if (launcherConfigList.size() > 1) {
-			logDebug("User selects configuration...");
+			Logging.logDebug("User selects configuration...");
 			selection = JOptionPane.showInputDialog(null, "Select a configuration:", "Launcher " + 
 					Downloader.class.getPackage().getImplementationVersion(), 
 					JOptionPane.QUESTION_MESSAGE, null, 
 					launcherConfigList.toArray(), launcherConfigList.get(0));
 			if (selection == null) {
-				logInfo("No configuration selected!");
-				ps.close();
+				Logging.logInfo("No configuration selected!");
+				Logging.close();
 				System.exit(0);
 			}
 		}
-		logInfo("Selected launcher config '" + selection + "'");
+		Logging.logInfo("Selected launcher config '" + selection + "'");
 		LauncherConfig launcherConfig = readLauncherConfig((File)selection);
-		logDebug("Launcher Config     '" + ((File)selection).getName() + "'");
-		logDebug("  BASE PATH=        '" + launcherConfig.getBasePath().getAbsolutePath() + "'");
-		logDebug("  POST COMMAND=     '" + launcherConfig.getPostCommand() + "'");
-		logDebug("  POST CWD=         '" + launcherConfig.getPostCWD().getAbsolutePath() + "'");
-		logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel() + "'");
+		Logging.logDebug("Launcher Config     '" + ((File)selection).getName() + "'");
+		Logging.logDebug("  BASE PATH=        '" + launcherConfig.getBasePath().getAbsolutePath() + "'");
+		Logging.logDebug("  POST COMMAND=     '" + launcherConfig.getPostCommand() + "'");
+		Logging.logDebug("  POST CWD=         '" + launcherConfig.getPostCWD().getAbsolutePath() + "'");
+		Logging.logDebug("  LOG LEVEL=        '" + launcherConfig.getLogLevel() + "'");
 		// LAUNCHER CONFIGS (*.cfg) END
 		
 		// DOWNLOAD CONFIGS (v_*) BEGIN
 		for (File f : launcherConfig.getDownloadConfigs())
-			logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath() + "'");
-		if (launcherConfig.getLogLevel() != null) {
-			Downloader.logLevel = launcherConfig.getLogLevel();
-			logDebug("Set log level to " + Downloader.logLevel);
-		}
+			Logging.logDebug("  DOWNLOAD CONFIG=  '" + f.getAbsolutePath() + "'");
 		
 		List<DownloadConfig> remoteConfigs = new LinkedList<>();
 		
@@ -139,56 +114,56 @@ public class Downloader {
 		// DOWNLOAD CONFIGS (v_*) END
 		
 		// ACTUAL DOWNLOAD BEGIN
-		logEmptyLine();
-		logDebug("BEGIN DOWNLOAD");
+		Logging.logEmptyLine();
+		Logging.logDebug("BEGIN DOWNLOAD");
 		for (DownloadConfig cfg : remoteConfigs) {
-			logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
+			Logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
 			File sourceComparisonFile = cfg.getCompare() != null ? cfg.getCompare() : cfg.getTarget();
-			logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
+			Logging.logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
 			if (cfg.getSource().lastModified() > sourceComparisonFile.lastModified())
 				download(cfg);
 			else  {
-				logDebug("  SKIP ALREADY UPDATE");
-				logDebug("  [" + cfg.getVersion() + "] " + 
+				Logging.logDebug("  SKIP ALREADY UPDATE");
+				Logging.logDebug("  [" + cfg.getVersion() + "] " + 
 				"'" +  cfg.getSource().getAbsolutePath() + "'" + " -> " + 
 						"'" + cfg.getTarget().getAbsolutePath() + "'");
 			}
 		}
-		logDebug("DONE!");
+		Logging.logDebug("DONE!");
 		// ACTUAL DOWNLOAD END
 		
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar").lastModified();
 		if (bootstrapUpdated) {
-			logDebug("Bootstrap update! Restart!");
+			Logging.logDebug("Bootstrap update! Restart!");
 			try {
-				ps.close();
+				Logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				System.exit(0);
 			} catch (IOException e) {
-				printException(e);
+				Logging.printException(e);
 			}
 		} else if (new File("launcher_new.jar").exists()) {
-			logDebug("Launcher update! Restart!");
+			Logging.logDebug("Launcher update! Restart!");
 			try {
-				ps.close();
+				Logging.close();
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				System.exit(0);
 			} catch (IOException e) {
-				printException(e);
+				Logging.printException(e);
 			}
 		} else {
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN 'POST_CWD'
 			if (launcherConfig.getPostCommand() != null) {
 				try {
-					logInfo("Execute '" + launcherConfig.getPostCommand() + "' ...");
+					Logging.logInfo("Execute '" + launcherConfig.getPostCommand() + "' ...");
 					Runtime.getRuntime().exec(launcherConfig.getPostCommand(), null, launcherConfig.getPostCWD());
 				} catch (IOException e) {
-					printException(e);
+					Logging.printException(e);
 				}
 			}
 			
-			ps.close();
+			Logging.close();
 			System.exit(0);
 		}
 		
@@ -215,21 +190,10 @@ public class Downloader {
 				serverList.add(entry);
 			}
 		} catch (IOException e) {
-			printException(e); // markusmannel@gmail.com 20150224 Utilize our exception-to-file mechanism
+			Logging.printException(e); // markusmannel@gmail.com 20150224 Utilize our exception-to-file mechanism
 		}
 	}
 
-	/**
-	 * Prints the passed exception to an unique error file
-	 * @param e
-	 */
-	protected static void printException(Throwable e) {
-		try (PrintStream exout = new PrintStream("ERROR_" + UUID.randomUUID().toString() + ".txt")) {
-			e.printStackTrace(exout);
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		}
-	}
 
 	/**
 	 * Scans for launcher configurations (*.cfg files)
@@ -237,20 +201,20 @@ public class Downloader {
 	 * @return a list containing all cfg files withing 'file'
 	 */
 	private static List<File> getLauncherConfigList(File file) {
-		logDebug("Load launcher configurations from '" + file.getAbsolutePath() + "'");
+		Logging.logDebug("Load launcher configurations from '" + file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
-			logDebug("This is not a directory!");
-			logDebug(file.getAbsolutePath());
+			Logging.logDebug("This is not a directory!");
+			Logging.logDebug(file.getAbsolutePath());
 			return null;
 		}
 		List<File> configurationList = new ArrayList<>();
 		for (File f : file.listFiles()) {
 			if (f.getName().endsWith(".cfg")) { 
-				logDebug("  ADD '" + f.getAbsolutePath() + "'");
+				Logging.logDebug("  ADD '" + f.getAbsolutePath() + "'");
 				configurationList.add(f);
 			}
 		}
-		logDebug("DONE!");
+		Logging.logDebug("DONE!");
 		return configurationList;
 	}
 
@@ -304,8 +268,12 @@ public class Downloader {
 				cfg.setPostCWD(new File(System.getProperty("user.dir")));
 			}
 			
+			// Set default log level
+			if (cfg.getLogLevel() == null)
+				cfg.setLogLevel(LogLevel.DEBUG);
+			
 		} catch (IOException e) {
-			printException(e);
+			Logging.printException(e);
 			return null;
 		}
 		
@@ -323,13 +291,13 @@ public class Downloader {
 				addDownloadConfigsRecursivly(remoteConfigs, cfg.getSource(), cfg.getTarget(), cfg.getSource());
 			} else {
 				remoteConfigs.add(cfg);
-				logDebug("Download Config '" + cfg.getName() + "'");
-				logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath() + "'");
-				logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath() + "'");
-				logDebug("  COMPARE= '" + (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
+				Logging.logDebug("Download Config '" + cfg.getName() + "'");
+				Logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath() + "'");
+				Logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath() + "'");
+				Logging.logDebug("  COMPARE= '" + (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
 			}
 		}
-		logDebug("DONE");
+		Logging.logDebug("DONE");
 	}
 	
 
@@ -341,10 +309,10 @@ public class Downloader {
 			cfg.setSource(source);
 			cfg.setTarget( new File(target, source.getAbsolutePath().substring(basePath.getAbsolutePath().length())) );
 			cfg.setName(source.getName() + UUID.randomUUID().toString());
-			logDebug("Download Config '" + cfg.getName() + "'");
-			logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath() + "'");
-			logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath() + "'");
-			logDebug("  COMPARE= '" + (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
+			Logging.logDebug("Download Config '" + cfg.getName() + "'");
+			Logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath() + "'");
+			Logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath() + "'");
+			Logging.logDebug("  COMPARE= '" + (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
 			remoteConfigs.add(cfg);
 		} else {
 			for (File ff : source.listFiles())
@@ -358,30 +326,15 @@ public class Downloader {
 	 */
 	private static void download(DownloadConfig cfg) {
 		try {
-			logInfo("  DOWNLOADING ...");
-			logInfo("  [" + cfg.getVersion() + "] " +
+			Logging.logInfo("  DOWNLOADING ...");
+			Logging.logInfo("  [" + cfg.getVersion() + "] " +
 			"'" + cfg.getSource().getAbsolutePath() + "'" + " -> " + 
 			"'" + cfg.getTarget().getAbsolutePath() + "'");
 			cfg.getTarget().mkdirs();
 			Files.copy(cfg.getSource().toPath(), cfg.getTarget().toPath(), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			printException(e);
+			Logging.printException(e);
 		}
-	}
-
-	private static void logInfo(String s) {
-		log(LogLevel.INFO, s);
-	}
-	private static void logDebug(String s) {
-		log(LogLevel.DEBUG, s);
-	}
-	private static void log(LogLevel logLevel, String s) {
-		if (logLevel == Downloader.logLevel) {
-			System.out.println("["+sdf.format(new Date())+" "+logLevel.name()+"]: " + s);
-		}
-	}
-	private static void logEmptyLine(){
-		System.out.println();
 	}
 
 	/**
@@ -419,7 +372,7 @@ public class Downloader {
 			
 			
 		} catch (IOException e) {
-			printException(e);
+			Logging.printException(e);
 			return null;
 		}
 		
@@ -485,7 +438,7 @@ class LauncherConfig {
 	private File basePath;
 	private String postCommand;
 	private File postCWD;
-	private Downloader.LogLevel logLevel;
+	private LogLevel logLevel;
 	private List<File> downloadConfigs;
 	
 	public List<File> getDownloadConfigs() {
@@ -496,11 +449,11 @@ class LauncherConfig {
 		this.downloadConfigs = downloadConfigs;
 	}
 
-	public Downloader.LogLevel getLogLevel() {
+	public LogLevel getLogLevel() {
 		return logLevel;
 	}
 
-	public void setLogLevel(Downloader.LogLevel logLevel) {
+	public void setLogLevel(LogLevel logLevel) {
 		this.logLevel = logLevel;
 	}
 
