@@ -3,6 +3,8 @@ package launcher.controller;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
+
 import launcher.Logging;
 import launcher.beans.PackageBean;
 
@@ -27,6 +29,7 @@ public class LauncherRestartController implements Runnable {
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar").lastModified();
 		if (bootstrapUpdated) {
 			logging.logDebug("Bootstrap update! Restart!");
+			JOptionPane.showMessageDialog(null, "Bootstrap updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 			try {
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				exit(0, "Bootstrap update! Restart!");
@@ -35,6 +38,7 @@ public class LauncherRestartController implements Runnable {
 			}
 		} else if (new File("launcher_new.jar").exists()) {
 			logging.logDebug("Launcher update! Restart!");
+			JOptionPane.showMessageDialog(null, "Launcher updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 			try {
 				Runtime.getRuntime().exec("java -jar bootstrap.jar");
 				exit(0, "Launcher update! Restart!");
