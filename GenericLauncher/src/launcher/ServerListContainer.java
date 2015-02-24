@@ -8,6 +8,8 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import launcher.beans.ServerListEntry;
+
 public class ServerListContainer implements Runnable {
 
 	private Logging logging;

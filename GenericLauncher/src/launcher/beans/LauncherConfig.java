@@ -1,8 +1,9 @@
-package launcher;
+package launcher.beans;
 
 import java.io.File;
 import java.util.List;
 
+import launcher.Logging;
 import launcher.Logging.LogLevel;
 
 /**
@@ -11,7 +12,7 @@ import launcher.Logging.LogLevel;
  * @author Markus
  *
  */
-class LauncherConfig {
+public class LauncherConfig {
 	private File basePath;
 	private String postCommand;
 	private File postCWD;

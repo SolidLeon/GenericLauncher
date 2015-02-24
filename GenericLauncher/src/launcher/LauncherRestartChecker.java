@@ -3,6 +3,8 @@ package launcher;
 import java.io.File;
 import java.io.IOException;
 
+import launcher.beans.LauncherConfig;
+
 public class LauncherRestartChecker implements Runnable {
 
 	private Logging logging;

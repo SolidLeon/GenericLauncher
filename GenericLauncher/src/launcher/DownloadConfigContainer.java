@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import launcher.beans.DownloadConfig;
+import launcher.beans.LauncherConfig;
+
 public class DownloadConfigContainer implements Runnable {
 
 	

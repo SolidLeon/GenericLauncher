@@ -9,6 +9,8 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import launcher.Logging.LogLevel;
+import launcher.beans.LauncherConfig;
+import launcher.beans.ServerListEntry;
 
 public class LauncherConfigContainer implements Runnable {
 

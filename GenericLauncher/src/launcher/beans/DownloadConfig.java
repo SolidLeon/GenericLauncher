@@ -1,4 +1,4 @@
-package launcher;
+package launcher.beans;
 
 import java.io.File;
 
@@ -8,7 +8,7 @@ import java.io.File;
  * @author Markus
  *
  */
-class DownloadConfig {
+public class DownloadConfig {
 	private String name;
 	private File source;
 	private File target;
