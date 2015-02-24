@@ -15,9 +15,14 @@ import javax.swing.JOptionPane;
 
 import launcher.Logging.LogLevel;
 
-public class Downloader {
+public class Downloader implements Runnable {
 
 	public static void main(String[] args) {
+		new Thread(new Downloader()).start();
+	}
+
+	@Override
+	public void run() {
 
 		Logging.setup();
 
@@ -185,16 +190,15 @@ public class Downloader {
 			Logging.close();
 			System.exit(0);
 		}
-
 	}
-
+	
 	/**
 	 * Reads a list of NAME=SERVER_PATH from a text file
 	 * 
 	 * @param serverList
 	 * @param file
 	 */
-	private static void readServerList(List<ServerListEntry> serverList,
+	private void readServerList(List<ServerListEntry> serverList,
 			File file) {
 		try {
 			for (String line : Files.readAllLines(file.toPath())) {
@@ -224,7 +228,7 @@ public class Downloader {
 	 *            - a directory containing cfg files
 	 * @return a list containing all cfg files withing 'file'
 	 */
-	private static List<File> getLauncherConfigList(File file) {
+	private List<File> getLauncherConfigList(File file) {
 		Logging.logDebug("Load launcher configurations from '"
 				+ file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
@@ -250,7 +254,7 @@ public class Downloader {
 	 * @param launcherConfigFile
 	 * @return
 	 */
-	private static LauncherConfig readLauncherConfig(File launcherConfigFile) {
+	private LauncherConfig readLauncherConfig(File launcherConfigFile) {
 		LauncherConfig cfg = new LauncherConfig();
 
 		try {
@@ -314,7 +318,7 @@ public class Downloader {
 		return cfg;
 	}
 
-	private static void readDownloadConfigs(List<DownloadConfig> remoteConfigs,
+	private void readDownloadConfigs(List<DownloadConfig> remoteConfigs,
 			LauncherConfig launcherConfig, List<File> dir) {
 		for (File remoteConfigFile : dir) {
 			DownloadConfig cfg = readDownloadConfig(
@@ -337,7 +341,7 @@ public class Downloader {
 		Logging.logDebug("DONE");
 	}
 
-	private static void addDownloadConfigsRecursivly(
+	private void addDownloadConfigsRecursivly(
 			List<DownloadConfig> remoteConfigs, File basePath, File target,
 			File source) {
 		if (source.isFile()) {
@@ -368,7 +372,7 @@ public class Downloader {
 	 * 
 	 * @param cfg
 	 */
-	private static void download(DownloadConfig cfg) {
+	private void download(DownloadConfig cfg) {
 		try {
 			Logging.logInfo("  DOWNLOADING ...");
 			Logging.logInfo("  [" + cfg.getVersion() + "] " + "'"
@@ -389,7 +393,7 @@ public class Downloader {
 	 * @param remoteFile
 	 * @return
 	 */
-	private static DownloadConfig readDownloadConfig(File basePath,
+	private DownloadConfig readDownloadConfig(File basePath,
 			File remoteFile) {
 		DownloadConfig cfg = new DownloadConfig();
 		cfg.setName(remoteFile.getName());
