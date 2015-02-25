@@ -106,6 +106,7 @@ public class ComponentController implements Runnable {
 		cfg.setName(remoteFile.getName());
 
 		try {
+			logging.logDebug("Read component bean from '" + remoteFile.toPath() + "'");
 			List<String> lines = Files.readAllLines(remoteFile.toPath());
 
 			for (String line : lines) {

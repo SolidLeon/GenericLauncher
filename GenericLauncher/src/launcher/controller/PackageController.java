@@ -69,9 +69,11 @@ public class PackageController implements Runnable {
 				+ selectedPackageBean.getPostCommand() + "'");
 		logging.logDebug("  POST CWD=         '"
 				+ selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
-		for (File f : selectedPackageBean.getComponentFiles())
-			logging.logDebug("  COMPONENT=        '" + f.getAbsolutePath()
-					+ "'");
+		if (selectedPackageBean.getComponentFiles().isEmpty())
+			logging.logDebug("  No components specified by this package!");
+		else 
+			for (File f : selectedPackageBean.getComponentFiles())
+				logging.logDebug("  COMPONENT=        '" + f.getAbsolutePath() + "'");
 	}
 	
 	/**
