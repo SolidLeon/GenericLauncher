@@ -41,13 +41,16 @@ public class Logging {
 	 * @param e
 	 */
 	public void printException(Throwable e) {
-		try (PrintStream exout = new PrintStream("ERROR_" + UUID.randomUUID().toString() + ".txt")) {
+		File exceptionFile = new File("ERROR_" + UUID.randomUUID().toString() + ".txt");
+		try (PrintStream exout = new PrintStream(exceptionFile)) {
 			e.printStackTrace(exout);
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
-		}
-		if (ps != null) {
-			ps.flush();
+		} finally {
+			logDebug("Exit due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
+			e.printStackTrace(ps);
+			close();
+			System.exit(99);
 		}
 	}
 	
