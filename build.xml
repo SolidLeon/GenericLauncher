@@ -12,6 +12,9 @@
 			<attribute name="Implementation-Version" value="${version.num} Build ${build.number}" />
 			<attribute name="Built-Date" value="${TODAY}"/> 
 		</manifest>
-		<jar jarfile="launcher.jar" includes="*.class" basedir="bin" />
+		<jar 	destfile="launcher.jar" 
+				includes="**/*.class" 
+				basedir="bin" 
+				manifest="MANIFEST.MF" />
 	</target>
 </project>
