@@ -54,7 +54,7 @@ public class ComponentController implements Runnable {
 						componentBean.getTarget(), componentBean.getSource());
 			} else {
 				remoteConfigs.add(componentBean);
-				logging.logDebug("Download Config '" + componentBean.getName() + "'");
+				logging.logDebug("COMPONENT  '" + componentBean.getName() + "'");
 				logging.logDebug("  SOURCE=  '"
 						+ componentBean.getSource().getAbsolutePath() + "'");
 				logging.logDebug("  TARGET=  '"
@@ -76,7 +76,7 @@ public class ComponentController implements Runnable {
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(
 					basePath.getAbsolutePath().length())));
 			cfg.setName(source.getName() + UUID.randomUUID().toString());
-			logging.logDebug("Download Config '" + cfg.getName() + "'");
+			logging.logDebug("COMPONENT  '" + cfg.getName() + "'");
 			logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()
 					+ "'");
 			logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()
@@ -123,9 +123,6 @@ public class ComponentController implements Runnable {
 					String sCompare = line.substring("COMPARE=".length());
 					File compareFile = new File(sCompare);
 					cfg.setCompare(compareFile);
-				} else if (line.startsWith("VERSION=")) {
-					cfg.setVersion(Integer.valueOf(line.substring("VERSION="
-							.length())));
 				}
 			}
 
