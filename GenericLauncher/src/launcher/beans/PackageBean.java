@@ -16,7 +16,6 @@ public class PackageBean {
 	private File basePath;
 	private String postCommand;
 	private File postCWD;
-	private LogLevel logLevel;
 	private List<File> componentFiles;
 
 	public List<File> getComponentFiles() {
@@ -25,14 +24,6 @@ public class PackageBean {
 
 	public void setComponentFiles(List<File> componentFiles) {
 		this.componentFiles = componentFiles;
-	}
-
-	public LogLevel getLogLevel() {
-		return logLevel;
-	}
-
-	public void setLogLevel(LogLevel logLevel) {
-		this.logLevel = logLevel;
 	}
 
 	public File getPostCWD() {

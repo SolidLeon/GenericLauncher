@@ -65,8 +65,6 @@ public class PackageController implements Runnable {
 				+ selectedPackageBean.getPostCommand() + "'");
 		logging.logDebug("  POST CWD=         '"
 				+ selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
-		logging.logDebug("  LOG LEVEL=        '" + selectedPackageBean.getLogLevel()
-				+ "'");
 		for (File f : selectedPackageBean.getComponentFiles())
 			logging.logDebug("  COMPONENT=        '" + f.getAbsolutePath()
 					+ "'");
@@ -106,7 +104,7 @@ public class PackageController implements Runnable {
 	 * @return
 	 */
 	private PackageBean readPackageBean(File packageBeanFile) {
-		PackageBean cfg = new PackageBean();
+		PackageBean packageBean = new PackageBean();
 
 		try {
 			List<String> lines = Files
@@ -116,26 +114,23 @@ public class PackageController implements Runnable {
 			for (String line : lines) {
 				if (line.startsWith("BASE_PATH=")) {
 					String sBasePath = line.substring("BASE_PATH=".length());
-					cfg.setBasePath(new File(sBasePath));
+					packageBean.setBasePath(new File(sBasePath));
 				} else if (line.startsWith("POST_COMMAND=")) {
 					String sPostCommand = line.substring("POST_COMMAND="
 							.length());
-					cfg.setPostCommand(sPostCommand);
+					packageBean.setPostCommand(sPostCommand);
 				} else if (line.startsWith("POST_CWD=")) {
 					String sPostCWD = line.substring("POST_CWD=".length());
-					cfg.setPostCWD(new File(sPostCWD));
-				} else if (line.startsWith("LOG_LEVEL=")) {
-					String sLogLevel = line.substring("LOG_LEVEL=".length());
-					cfg.setLogLevel(LogLevel.valueOf(sLogLevel));
-				} else if (line.startsWith("DOWNLOAD_CONFIG=")) {
-					String sComponentFile = line.substring("DOWNLOAD_CONFIG="
+					packageBean.setPostCWD(new File(sPostCWD));
+				} else if (line.startsWith("COMPONENT=")) {
+					String sComponentFile = line.substring("COMPONENT="
 							.length());
 					componentFileList.add(new File(sComponentFile));
 				}
 			}
 
 			// Download configs post-setup
-			cfg.setComponentFiles(componentFileList);
+			packageBean.setComponentFiles(componentFileList);
 			// we need to adjust relative paths and combine them with the
 			// basePath (remote path)
 			// Detailed: The path is relative on the remote machine, but new
@@ -147,26 +142,22 @@ public class PackageController implements Runnable {
 			for (int i = 0; i < componentFileList.size(); i++) {
 				File f = componentFileList.get(i);
 				if (!f.isAbsolute()) {
-					f = new File(cfg.getBasePath(), f.getPath());
+					f = new File(packageBean.getBasePath(), f.getPath());
 					componentFileList.set(i, f);
 				}
 			}
 			// If the config does not provide a 'POST_CWD' we set it to this
 			// jars CWD.
-			if (cfg.getPostCWD() == null) {
-				cfg.setPostCWD(new File(System.getProperty("user.dir")));
+			if (packageBean.getPostCWD() == null) {
+				packageBean.setPostCWD(new File(System.getProperty("user.dir")));
 			}
-
-			// Set default log level
-			if (cfg.getLogLevel() == null)
-				cfg.setLogLevel(LogLevel.DEBUG);
 
 		} catch (IOException e) {
 			logging.printException(e);
 			return null;
 		}
 
-		return cfg;
+		return packageBean;
 	}
 
 }
