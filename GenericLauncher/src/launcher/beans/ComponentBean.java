@@ -13,7 +13,6 @@ public class ComponentBean {
 	private File source;
 	private File target;
 	private File compare;
-	private int version;
 
 	public File getCompare() {
 		return compare;
@@ -47,11 +46,4 @@ public class ComponentBean {
 		this.target = target;
 	}
 
-	public int getVersion() {
-		return version;
-	}
-
-	public void setVersion(int version) {
-		this.version = version;
-	}
 }

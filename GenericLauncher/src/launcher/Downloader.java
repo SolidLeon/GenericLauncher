@@ -33,8 +33,7 @@ public class Downloader {
 				download(cfg);
 			else {
 				logging.logDebug("  SKIP ALREADY UPDATE");
-				logging.logDebug("  [" + cfg.getVersion() + "] " + "'"
-						+ cfg.getSource().getAbsolutePath() + "'" + " -> "
+				logging.logDebug("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> "
 						+ "'" + cfg.getTarget().getAbsolutePath() + "'");
 			}
 		}
@@ -50,8 +49,7 @@ public class Downloader {
 	private void download(ComponentBean cfg) {
 		try {
 			logging.logInfo("  DOWNLOADING ...");
-			logging.logInfo("  [" + cfg.getVersion() + "] " + "'"
-					+ cfg.getSource().getAbsolutePath() + "'" + " -> " + "'"
+			logging.logInfo("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> " + "'"
 					+ cfg.getTarget().getAbsolutePath() + "'");
 			cfg.getTarget().mkdirs();
 			Files.copy(cfg.getSource().toPath(), cfg.getTarget().toPath(),
