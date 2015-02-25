@@ -33,10 +33,13 @@ public class PackageController implements Runnable {
 
 	@Override
 	public void run() {
-		if (selectedServer == null)
+		if (selectedServer == null) {
+			logging.logDebug("selectedServer == null");
 			return;
+		}
 		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
 		if (packageBeanList.isEmpty()) {
+			logging.logDebug("no packages loaded!");
 			return; //No launcher configurations found!
 		}
 
@@ -52,6 +55,7 @@ public class PackageController implements Runnable {
 					JOptionPane.QUESTION_MESSAGE, null,
 					packageBeanList.toArray(), packageBeanList.get(0));
 			if (selection == null) {
+				logging.logDebug("selection == null");
 				return; //No configuration selected, or user cancelled
 			}
 		}

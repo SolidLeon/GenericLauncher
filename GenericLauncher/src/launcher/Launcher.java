@@ -30,10 +30,10 @@ public class Launcher implements Runnable {
 	@Override
 	public void run() {
 		logging = new Logging();
-		
-		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
 		logBasicInfo();
+		
+		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
 		ServerListController serverListController = new ServerListController(logging);
 		serverListController.run();

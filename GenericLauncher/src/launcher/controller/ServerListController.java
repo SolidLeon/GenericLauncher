@@ -35,6 +35,7 @@ public class ServerListController implements Runnable {
 	public void run() {
 		readServerList(serverList, new File("serverlist.txt"));
 		if (serverList.isEmpty()) {
+			logging.logDebug("no server found");
 			return; //No server found
 		}
 
@@ -48,10 +49,10 @@ public class ServerListController implements Runnable {
 			if (serverSelectionObject == null) {
 				return; //No server selected or user cancelled
 			}
-			selected = (ServerListEntry) serverSelectionObject;
 		}
+		selected = (ServerListEntry) serverSelectionObject;
 
-		logging.logInfo("Selected server '" + serverSelectionObject + "'");
+		logging.logInfo("Selected server '" + selected + "'");
 	}
 
 	/**

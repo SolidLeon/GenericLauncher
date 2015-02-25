@@ -46,7 +46,11 @@ public class Logging {
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		}
+		if (ps != null) {
+			ps.flush();
+		}
 	}
+	
 	public void close() {
 		if (ps != null) {
 			ps.close();
@@ -60,9 +64,7 @@ public class Logging {
 		log(LogLevel.DEBUG, s);
 	}
 	public void log(LogLevel logLevel, String s) {
-		if (logLevel == this.logLevel) {
-			System.out.println("["+sdf.format(new Date())+" "+logLevel.name()+"]: " + s);
-		}
+		System.out.printf("[%s %5s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
 	}
 	public void logEmptyLine(){
 		System.out.println();
