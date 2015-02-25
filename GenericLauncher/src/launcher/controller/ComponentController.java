@@ -47,20 +47,20 @@ public class ComponentController implements Runnable {
 	private void readComponentBeans(List<ComponentBean> remoteConfigs,
 			PackageBean launcherConfig, List<File> dir) {
 		for (File remoteConfigFile : dir) {
-			ComponentBean cfg = readComponentBean(
+			ComponentBean componentBean = readComponentBean(
 					launcherConfig.getBasePath(), remoteConfigFile);
-			if (cfg.getSource().isDirectory()) {
-				addComponentBeansRecursivly(remoteConfigs, cfg.getSource(),
-						cfg.getTarget(), cfg.getSource());
+			if (componentBean.getSource().isDirectory()) {
+				addComponentBeansRecursivly(remoteConfigs, componentBean.getSource(),
+						componentBean.getTarget(), componentBean.getSource());
 			} else {
-				remoteConfigs.add(cfg);
-				logging.logDebug("Download Config '" + cfg.getName() + "'");
+				remoteConfigs.add(componentBean);
+				logging.logDebug("Download Config '" + componentBean.getName() + "'");
 				logging.logDebug("  SOURCE=  '"
-						+ cfg.getSource().getAbsolutePath() + "'");
+						+ componentBean.getSource().getAbsolutePath() + "'");
 				logging.logDebug("  TARGET=  '"
-						+ cfg.getTarget().getAbsolutePath() + "'");
+						+ componentBean.getTarget().getAbsolutePath() + "'");
 				logging.logDebug("  COMPARE= '"
-						+ (cfg.getCompare() == null ? "None" : cfg.getCompare()
+						+ (componentBean.getCompare() == null ? "None" : componentBean.getCompare()
 								.getAbsolutePath()) + "'");
 			}
 		}
