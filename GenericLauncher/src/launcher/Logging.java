@@ -20,8 +20,6 @@ public class Logging {
 		DEBUG,
 		INFO
 	};
-	/** Current LogLevel */
-	private LogLevel logLevel = LogLevel.DEBUG;
 	
 	public Logging() {
 		try {
