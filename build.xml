@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="jar" name="GenericLauncher">
+	<target name="jar" description="Create a jar for the GenericLauncher project">
+		<property name="version.num" value="0.1" />
+		<buildnumber file="build.num" />
+	    <tstamp>
+	    	<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+	    </tstamp>
+		
+		<manifest file="MANIFEST.MF">
+			<attribute name="Main-Class" value="launcher.Launcher" />
+			<attribute name="Implementation-Version" value="${version.num} Build ${build.number}" />
+			<attribute name="Built-Date" value="${TODAY}"/> 
+		</manifest>
+		<jar jarfile="launcher.jar" includes="*.class" basedir="bin" />
+	</target>
+</project>
