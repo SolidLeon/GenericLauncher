@@ -1,22 +1,10 @@
 package launcher;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
 
-import javax.swing.JOptionPane;
-
-import launcher.Logging.LogLevel;
 import launcher.controller.ComponentController;
-import launcher.controller.PackageController;
 import launcher.controller.LauncherRestartController;
+import launcher.controller.PackageController;
 import launcher.controller.ServerListController;
 
 public class Launcher implements Runnable {
