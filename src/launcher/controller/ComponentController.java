@@ -17,7 +17,7 @@ public class ComponentController implements Runnable {
 	
 	private Logging logging;
 	private PackageBean packageBean;
-	private List<ComponentBean> remoteComponents = new LinkedList<>();
+	private List<ComponentBean> resultComponentList = new LinkedList<>();
 	
 	public ComponentController(Logging logging,
 			PackageBean launcherConfig) {
@@ -26,8 +26,8 @@ public class ComponentController implements Runnable {
 		this.packageBean = launcherConfig;
 	}
 	
-	public List<ComponentBean> getRemoteConfigs() {
-		return remoteComponents;
+	public List<ComponentBean> getResultComponentList() {
+		return resultComponentList;
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class ComponentController implements Runnable {
 			return;
 		}
 			
-		readComponentBeans(remoteComponents, packageBean,
+		readComponentBeans(resultComponentList, packageBean,
 				packageBean.getComponentFiles());	
 	}
 

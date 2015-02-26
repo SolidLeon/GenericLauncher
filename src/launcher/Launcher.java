@@ -33,7 +33,7 @@ public class Launcher implements Runnable {
 		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
 		componentController.run();
 
-		Downloader downloader = new Downloader(logging, componentController.getRemoteConfigs());
+		Downloader downloader = new Downloader(logging, componentController.getResultComponentList());
 		downloader.run();
 
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
