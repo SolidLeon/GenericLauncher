@@ -48,11 +48,13 @@ public class LauncherRestartController implements Runnable {
 		} else {
 			if (activePackageBean == null) {
 				logging.logDebug("no commands executed: no package selected!");
+				JOptionPane.showMessageDialog(null, "Launcher finished.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
 			// 'POST_CWD'
 			if (activePackageBean.getPostCommand() != null) {
+				JOptionPane.showMessageDialog(null, "Launcher finished, execute post command '" + activePackageBean.getPostCommand() + "'.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 				try {
 					logging.logInfo("Execute '"
 							+ activePackageBean.getPostCommand() + "' ...");
@@ -61,6 +63,8 @@ public class LauncherRestartController implements Runnable {
 				} catch (IOException e) {
 					logging.printException(e);
 				}
+			} else {
+				JOptionPane.showMessageDialog(null, "Launcher finished, no post command.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 			}
 
 			exit(0, "Launcher finished!");
