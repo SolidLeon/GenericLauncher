@@ -47,7 +47,7 @@ public class LauncherRestartController implements Runnable {
 			}
 		} else {
 			if (activePackageBean == null) {
-				logging.logDebug("no package selected!");
+				logging.logDebug("no commands executed: no package selected!");
 				return;
 			}
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
