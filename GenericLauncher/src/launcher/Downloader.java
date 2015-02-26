@@ -11,18 +11,22 @@ import launcher.beans.ComponentBean;
 public class Downloader {
 
 	private Logging logging;
-	private List<ComponentBean> remoteConfigs;
+	private List<ComponentBean> componentList;
 	
-	public Downloader(Logging logging, List<ComponentBean> remoteConfigs) {
+	public Downloader(Logging logging, List<ComponentBean> componentList) {
 		super();
 		this.logging = logging;
-		this.remoteConfigs = remoteConfigs;
+		this.componentList = componentList;
 	}
 
 	public void run() {
+		if (componentList == null || componentList.isEmpty()) {
+			logging.logDebug("componentList == null");
+			return;
+		}
 		logging.logEmptyLine();
 		logging.logDebug("BEGIN DOWNLOAD");
-		for (ComponentBean cfg : remoteConfigs) {
+		for (ComponentBean cfg : componentList) {
 			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
 			File sourceComparisonFile = cfg.getCompare() != null ? cfg
 					.getCompare() : cfg.getTarget();
@@ -44,15 +48,15 @@ public class Downloader {
 	 * Copy files using
 	 * {@link Files#copy(java.nio.file.Path, java.nio.file.Path, java.nio.file.CopyOption...)}
 	 * 
-	 * @param cfg
+	 * @param component
 	 */
-	private void download(ComponentBean cfg) {
+	private void download(ComponentBean component) {
 		try {
-			logging.logInfo("  DOWNLOADING ...");
-			logging.logInfo("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> " + "'"
-					+ cfg.getTarget().getAbsolutePath() + "'");
-			cfg.getTarget().mkdirs();
-			Files.copy(cfg.getSource().toPath(), cfg.getTarget().toPath(),
+			logging.logInfo("  DOWNLOADING COMPONENT ...");
+			logging.logInfo("  '" + component.getSource().getAbsolutePath() + "'" + " -> " + "'"
+					+ component.getTarget().getAbsolutePath() + "'");
+			component.getTarget().mkdirs();
+			Files.copy(component.getSource().toPath(), component.getTarget().toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			logging.printException(e);
