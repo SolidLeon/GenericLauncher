@@ -33,6 +33,11 @@ public class Logging {
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> printException(e));
 	}
 	
+	/**
+	 * Returns an File object pointing to the 'logs' directory.
+	 * It also checks if the directory exists and if not creates it.
+	 * @return File pointing to 'logs' directory
+	 */
 	private File getLogsDirectory() {
 		File logsFile = new File("logs");
 		if (!logsFile.exists()) logsFile.mkdir();
