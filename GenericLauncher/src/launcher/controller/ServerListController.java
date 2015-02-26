@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import launcher.Logging;
 import launcher.beans.ServerListEntry;
@@ -33,7 +35,29 @@ public class ServerListController implements Runnable {
 	
 	@Override
 	public void run() {
-		readServerList(serverList, new File("serverlist.txt"));
+		JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
+		jfc.setFileFilter(new FileNameExtensionFilter("Server List", ".txt"));
+		jfc.setMultiSelectionEnabled(false);
+		
+		File selectedServerList = null;
+		
+		while (selectedServerList == null) {
+			int rc = jfc.showOpenDialog(null); 
+			if (rc == JFileChooser.APPROVE_OPTION) {
+				selectedServerList = jfc.getSelectedFile();
+				logging.logDebug("User selected serverlist file '" + selectedServerList.getAbsolutePath() + "'");
+				if (!selectedServerList.exists() || selectedServerList.isDirectory()) {
+					logging.logDebug("Server list file is invalid!");
+					JOptionPane.showMessageDialog(jfc, "Invalid server list selected!");
+					selectedServerList = null;
+				}
+			} else if (rc == JFileChooser.CANCEL_OPTION) {
+				logging.logDebug("User cancelled server list selection");
+				return;
+			}
+		}
+		
+		readServerList(serverList, selectedServerList);
 		if (serverList.isEmpty()) {
 			logging.logDebug("no server found");
 			return; //No server found
@@ -64,6 +88,7 @@ public class ServerListController implements Runnable {
 	private void readServerList(List<ServerListEntry> serverList,
 			File file) {
 		try {
+			logging.logDebug("Read server list from '" + file.getAbsolutePath() + "'");
 			for (String line : Files.readAllLines(file.toPath())) {
 				int idx = line.indexOf('=');
 				if (idx == -1)
@@ -77,6 +102,11 @@ public class ServerListController implements Runnable {
 
 				serverList.add(entry);
 			}
+			
+			logging.logDebug(String.format("Server list '%s' contains %d entries", file.getName(), serverList.size()));
+			for (ServerListEntry entry : serverList)
+				logging.logDebug(String.format("  '%-30s'  '%s'", entry.getName(), entry.getBasePath()));
+			
 		} catch (IOException e) {
 			logging.printException(e); // markusmannel@gmail.com 20150224
 										// Utilize our exception-to-file
