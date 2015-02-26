@@ -69,7 +69,7 @@ public class Launcher implements Runnable {
 				+ System.getProperty("java.vendor") + "'");
 		logging.logInfo("System.getProperty('sun.arch.data.model') == '"
 				+ System.getProperty("sun.arch.data.model") + "'");
-		logging.logInfo("System.getProperty('user.dir') == " + System.getProperty("user.dir"));
+		logging.logInfo("System.getProperty('user.dir') == " + "'" + System.getProperty("user.dir") + "'");
 		logging.logEmptyLine();
 	}
 	
