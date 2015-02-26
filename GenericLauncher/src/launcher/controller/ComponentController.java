@@ -36,12 +36,13 @@ public class ComponentController implements Runnable {
 			logging.logDebug("packageBean == null");
 			return;
 		}
-		if (packageBean.getComponentFiles().isEmpty())
-			readComponentBeans(remoteComponents, packageBean,
-					Arrays.asList(packageBean.getBasePath().listFiles()));
-		else
-			readComponentBeans(remoteComponents, packageBean,
-					packageBean.getComponentFiles());	
+		if (packageBean.getComponentFiles() == null || packageBean.getComponentFiles().isEmpty()) {
+			logging.logDebug("package does not contain any components!");
+			return;
+		}
+			
+		readComponentBeans(remoteComponents, packageBean,
+				packageBean.getComponentFiles());	
 	}
 
 	private void readComponentBeans(List<ComponentBean> remoteConfigs,
