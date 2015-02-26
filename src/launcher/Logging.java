@@ -23,9 +23,7 @@ public class Logging {
 	
 	public Logging() {
 		try {
-			File logsFile = new File("logs");
-			if (!logsFile.exists()) logsFile.mkdir();
-			ps = new PrintStream(new File(logsFile, "log_" + UUID.randomUUID().toString() + ".txt"));
+			ps = new PrintStream(new File(getLogsDirectory(), "log_" + UUID.randomUUID().toString() + ".txt"));
 		} catch (FileNotFoundException e) {
 			printException(e);
 		}
@@ -34,12 +32,19 @@ public class Logging {
 		
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> printException(e));
 	}
+	
+	private File getLogsDirectory() {
+		File logsFile = new File("logs");
+		if (!logsFile.exists()) logsFile.mkdir();
+		return logsFile;
+	}
+	
 	/**
 	 * Prints the passed exception to an unique error file
 	 * @param e
 	 */
 	public void printException(Throwable e) {
-		File exceptionFile = new File("ERROR_" + UUID.randomUUID().toString() + ".txt");
+		File exceptionFile = new File(getLogsDirectory(), "ERROR_" + UUID.randomUUID().toString() + ".txt");
 		try (PrintStream exout = new PrintStream(exceptionFile)) {
 			e.printStackTrace(exout);
 		} catch (FileNotFoundException e1) {
