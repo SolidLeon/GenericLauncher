@@ -36,7 +36,7 @@ public class ServerListController implements Runnable {
 	@Override
 	public void run() {
 		JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
-		jfc.setFileFilter(new FileNameExtensionFilter("Server List", ".txt"));
+		jfc.setFileFilter(new FileNameExtensionFilter("Server List", "txt"));
 		jfc.setMultiSelectionEnabled(false);
 		
 		File selectedServerList = null;
