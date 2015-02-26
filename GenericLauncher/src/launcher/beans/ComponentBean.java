@@ -45,5 +45,11 @@ public class ComponentBean {
 	public void setTarget(File target) {
 		this.target = target;
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("Component [name='%s', source='%s', target='%s', compare='%s']",
+				name, source, target, compare);
+	}
 
 }

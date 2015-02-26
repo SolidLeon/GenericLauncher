@@ -50,4 +50,9 @@ public class PackageBean {
 		this.basePath = basePath;
 	}
 
+	@Override
+	public String toString() {
+		return String.format("Package [BasePath='%s', PostCmd='%s', PostCWD='%s', Components=%d]",
+				basePath, postCommand, postCWD, componentFiles == null ? 0 : componentFiles.size());
+	}
 }
