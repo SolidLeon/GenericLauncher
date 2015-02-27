@@ -26,19 +26,18 @@ public class Downloader {
 		}
 		logging.logEmptyLine();
 		logging.logDebug("BEGIN DOWNLOAD");
+		logging.getStatusListener().setCurrentProgress(0, 0, componentList.size(), "Download ...");
+		logging.getStatusListener().addOverallProgress(1);
 		for (ComponentBean cfg : componentList) {
+			logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
 			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
-			File sourceComparisonFile = cfg.getCompare() != null ? cfg
-					.getCompare() : cfg.getTarget();
-			logging.logDebug("  COMPARE= '"
-					+ sourceComparisonFile.getAbsolutePath() + "'");
-			if (cfg.getSource().lastModified() > sourceComparisonFile
-					.lastModified())
+			File sourceComparisonFile = cfg.getCompare() != null ? cfg.getCompare() : cfg.getTarget();
+			logging.logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
+			if (cfg.getSource().lastModified() > sourceComparisonFile.lastModified())
 				download(cfg);
 			else {
 				logging.logDebug("  SKIP ALREADY UPDATE");
-				logging.logDebug("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> "
-						+ "'" + cfg.getTarget().getAbsolutePath() + "'");
+				logging.logDebug("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> " + "'" + cfg.getTarget().getAbsolutePath() + "'");
 			}
 		}
 		logging.logDebug("DONE!");
@@ -56,6 +55,7 @@ public class Downloader {
 			logging.logInfo("  '" + component.getSource().getAbsolutePath() + "'" + " -> " + "'"
 					+ component.getTarget().getAbsolutePath() + "'");
 			component.getTarget().mkdirs();
+			logging.getStatusListener().setCurrentProgress("Download '" + component.getSource().getAbsolutePath() + "' -> '" + component.getTarget().getAbsolutePath() + "'");
 			Files.copy(component.getSource().toPath(), component.getTarget().toPath(),
 					StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {

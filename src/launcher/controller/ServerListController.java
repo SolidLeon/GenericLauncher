@@ -89,7 +89,12 @@ public class ServerListController implements Runnable {
 			File file) {
 		try {
 			logging.logDebug("Read server list from '" + file.getAbsolutePath() + "'");
-			for (String line : Files.readAllLines(file.toPath())) {
+
+			List<String> lines = Files.readAllLines(file.toPath());
+			logging.getStatusListener().setCurrentProgress(0, 0, lines.size(), "Read server list from '" + file.getAbsolutePath() + "' ...");
+			logging.getStatusListener().addOverallProgress(1);
+			for (String line : lines) {
+				logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
 				int idx = line.indexOf('=');
 				if (idx == -1)
 					continue;
@@ -102,6 +107,7 @@ public class ServerListController implements Runnable {
 
 				serverList.add(entry);
 			}
+			logging.getStatusListener().setCurrentProgressToMax(); //set to max
 			
 			logging.logDebug(String.format("Server list '%s' contains %d entries", file.getName(), serverList.size()));
 			for (ServerListEntry entry : serverList)

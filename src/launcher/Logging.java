@@ -3,16 +3,19 @@ package launcher;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
+
+import launcher.gui.IStatusListener;
 
 public class Logging {
 
 
 	/** Logging PrintStream */
 	private PrintStream ps;
+	private PrintStream displayTextStream;
+	
 	/** Logging SimpleDateFormat */
 	private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	/** LogLevel */
@@ -21,16 +24,41 @@ public class Logging {
 		INFO
 	};
 	
-	public Logging() {
+	private IStatusListener statusListener;
+	
+	private boolean showStatusMessages;
+	
+	public Logging(IStatusListener statusListener) {
+		this.statusListener = statusListener;
+		
+		statusListener.setCurrentProgress(0, 0, 3, "Initialize logging ...");
 		try {
 			ps = new PrintStream(new File(getLogsDirectory(), "log_" + UUID.randomUUID().toString() + ".txt"));
 		} catch (FileNotFoundException e) {
 			printException(e);
 		}
 		
+		displayTextStream = new PrintStream(statusListener.getOutputStream());
+		
+		statusListener.setCurrentProgress(statusListener.getCurrentProgress() + 1);
+		
 		System.setOut(ps);
+		statusListener.setCurrentProgress(statusListener.getCurrentProgress() + 1);
 		
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> printException(e));
+		statusListener.setCurrentProgress(statusListener.getCurrentProgress() + 1);
+	}
+	
+	public void setShowStatusMessages(boolean showStatusMessages) {
+		this.showStatusMessages = showStatusMessages;
+	}
+	
+	public boolean isShwoStatusMessages() {
+		return showStatusMessages;
+	}
+	
+	public IStatusListener getStatusListener() {
+		return statusListener;
 	}
 	
 	/**
@@ -76,8 +104,11 @@ public class Logging {
 	}
 	public void log(LogLevel logLevel, String s) {
 		System.out.printf("[%s %5s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
+		displayTextStream.printf("[%s %5s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
+		
 	}
 	public void logEmptyLine(){
 		System.out.println();
+		displayTextStream.println();
 	}
 }
