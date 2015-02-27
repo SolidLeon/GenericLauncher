@@ -9,7 +9,7 @@ import launcher.Logging.LogLevel;
 /**
  * *.cfg files
  * 
- * @author Markus
+ * @author SolidLeon
  *
  */
 public class PackageBean {

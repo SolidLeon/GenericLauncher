@@ -9,11 +9,19 @@ import java.util.UUID;
 
 import launcher.gui.IStatusListener;
 
+/**
+ * 
+ * Modified: SolidLeon #4 20150227 
+ * 
+ * @author SolidLeon
+ *
+ */
 public class Logging {
 
 
 	/** Logging PrintStream */
 	private PrintStream ps;
+	/** SolidLeon #4 20150227 OutputStream provided by IStatusListener */
 	private PrintStream displayTextStream;
 	
 	/** Logging SimpleDateFormat */
@@ -24,8 +32,10 @@ public class Logging {
 		INFO
 	};
 	
+	/** SolidLeon #4 20150227  Status listener used to show progress */
 	private IStatusListener statusListener;
 	
+	/** SolidLeon #4 20150227  If true message boxes will be shown */
 	private boolean showStatusMessages;
 	
 	public Logging(IStatusListener statusListener) {
