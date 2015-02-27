@@ -3,14 +3,18 @@ package launcher.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.OutputStream;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -71,6 +75,17 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 				text.append(String.valueOf((char) b));
 			}
 		};
+		
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (closeButton.isEnabled()) {
+					closeButton.doClick();
+				} else {
+					JOptionPane.showMessageDialog(StatusDisplay.this, "Cannot close the window right now!");
+				}
+			}
+		});
 		
 		pack();
 		setLocationRelativeTo(null);
