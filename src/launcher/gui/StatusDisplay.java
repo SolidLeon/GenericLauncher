@@ -149,6 +149,15 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		}
 	}
 	
+	/**
+	 * - Sets a runner being executed after close button has been pressed.
+	 * - Enabled the close button
+	 * - Sets a fancy text for the close button
+	 * - Sets overall progress to max
+	 * - Sets current progress max to 100 (for cases where the max is 0)
+	 * - Sets current progress to max
+	 * - Sets 'Done!' as curren progress text
+	 */
 	@Override
 	public void setStatusCompletedExecCommandOnExit(Runnable runner) {
 		this.exitRunner = runner;
