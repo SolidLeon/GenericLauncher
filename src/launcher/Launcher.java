@@ -22,7 +22,6 @@ public class Launcher implements Runnable {
 	@Override
 	public void run() {
 		statusDisplay = new StatusDisplay();
-		statusDisplay.setClosable(false);
 		SwingUtilities.invokeLater(() -> statusDisplay.setVisible(true)); 
 		
 		logging = new Logging(statusDisplay);
@@ -49,7 +48,7 @@ public class Launcher implements Runnable {
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		launcherRestartController.run();
 		
-		statusDisplay.setClosable(true);
+		statusDisplay.setStatusCompletedExecCommandOnExit(null);
 	}
 
 	private void logBasicInfo() {

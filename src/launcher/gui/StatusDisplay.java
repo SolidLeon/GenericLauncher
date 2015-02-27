@@ -74,6 +74,8 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		
 		pack();
 		setLocationRelativeTo(null);
+		
+		closeButton.setEnabled(false);
 	}
 	
 	@Override
@@ -137,10 +139,6 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	public void addOverallProgress(int i) {
 		setOverallProgress(getOverallProgress() + i);
 	}
-
-	public void setClosable(boolean closable) {
-		closeButton.setEnabled(closable);
-	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -154,9 +152,12 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	@Override
 	public void setStatusCompletedExecCommandOnExit(Runnable runner) {
 		this.exitRunner = runner;
+		closeButton.setEnabled(true);
 		closeButton.setText("Completed! Close me!");
 		overallProgress.setValue(overallProgress.getMaximum());
+		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
+		setCurrentProgress("Done!");
 	}
 	
 }
