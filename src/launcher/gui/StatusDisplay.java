@@ -2,6 +2,7 @@ package launcher.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -61,6 +62,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		progressPanel.add(progressBarPanel, BorderLayout.CENTER);
 		add(progressPanel, BorderLayout.NORTH);
 		text = new JTextArea();
+		text.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		DefaultCaret caret = (DefaultCaret)text.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
