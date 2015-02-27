@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * v_* files
  * 
- * @author Markus
+ * @author SolidLeon
  *
  */
 public class ComponentBean {

@@ -47,26 +47,28 @@ public class ComponentController implements Runnable {
 
 	private void readComponentBeans(List<ComponentBean> remoteConfigs,
 			PackageBean launcherConfig, List<File> dir) {
+
+		logging.getStatusListener().setCurrentProgress(0, 0, dir.size(), "Read components ...");
+		logging.getStatusListener().addOverallProgress(1);
+		
 		for (File remoteConfigFile : dir) {
-			ComponentBean componentBean = readComponentBean(
-					launcherConfig.getBasePath(), remoteConfigFile);
+			logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
+			ComponentBean componentBean = readComponentBean(launcherConfig.getBasePath(), remoteConfigFile);
+			
 			if (componentBean.getSource().isDirectory()) {
-				addComponentBeansRecursivly(remoteConfigs, componentBean.getSource(),
-						componentBean.getTarget(), componentBean.getSource());
+				addComponentBeansRecursivly(remoteConfigs, componentBean.getSource(),componentBean.getTarget(), componentBean.getSource());
 			} else {
 				remoteConfigs.add(componentBean);
 				logging.logDebug("COMPONENT  '" + componentBean.getName() + "'");
-				logging.logDebug("  SOURCE=  '"
-						+ componentBean.getSource().getAbsolutePath() + "'");
-				logging.logDebug("  TARGET=  '"
-						+ componentBean.getTarget().getAbsolutePath() + "'");
-				logging.logDebug("  COMPARE= '"
-						+ (componentBean.getCompare() == null ? "None" : componentBean.getCompare()
-								.getAbsolutePath()) + "'");
+				logging.logDebug("  SOURCE=  '" + componentBean.getSource().getAbsolutePath() + "'");
+				logging.logDebug("  TARGET=  '" + componentBean.getTarget().getAbsolutePath() + "'");
+				logging.logDebug("  COMPARE= '" + (componentBean.getCompare() == null ? "None" : componentBean.getCompare().getAbsolutePath()) + "'");
 			}
 		}
+		logging.getStatusListener().setCurrentProgressToMax();
 		logging.logDebug("DONE");
 	}
+
 
 	private void addComponentBeansRecursivly(
 			List<ComponentBean> remoteConfigs, File basePath, File target,
@@ -74,17 +76,12 @@ public class ComponentController implements Runnable {
 		if (source.isFile()) {
 			ComponentBean cfg = new ComponentBean();
 			cfg.setSource(source);
-			cfg.setTarget(new File(target, source.getAbsolutePath().substring(
-					basePath.getAbsolutePath().length())));
+			cfg.setTarget(new File(target, source.getAbsolutePath().substring(basePath.getAbsolutePath().length())));
 			cfg.setName(source.getName() + UUID.randomUUID().toString());
 			logging.logDebug("COMPONENT  '" + cfg.getName() + "'");
-			logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()
-					+ "'");
-			logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()
-					+ "'");
-			logging.logDebug("  COMPARE= '"
-					+ (cfg.getCompare() == null ? "None" : cfg.getCompare()
-							.getAbsolutePath()) + "'");
+			logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()+ "'");
+			logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()+ "'");
+			logging.logDebug("  COMPARE= '"+ (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
 			remoteConfigs.add(cfg);
 		} else {
 			for (File ff : source.listFiles())

@@ -29,45 +29,51 @@ public class LauncherRestartController implements Runnable {
 		boolean bootstrapUpdated = bootstrapModified < new File("bootstrap.jar").lastModified();
 		if (bootstrapUpdated) {
 			logging.logDebug("Bootstrap update! Restart!");
-			JOptionPane.showMessageDialog(null, "Bootstrap updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
-			try {
-				Runtime.getRuntime().exec("java -jar bootstrap.jar");
-				exit(0, "Bootstrap update! Restart!");
-			} catch (IOException e) {
-				logging.printException(e);
-			}
+			if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Bootstrap updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+			
+			logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
+				try {
+					Runtime.getRuntime().exec("java -jar bootstrap.jar");
+					exit(0, "Bootstrap update! Restart!");
+				} catch (IOException e) {
+					logging.printException(e);
+				}
+			});
 		} else if (new File("launcher_new.jar").exists()) {
 			logging.logDebug("Launcher update! Restart!");
-			JOptionPane.showMessageDialog(null, "Launcher updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
-			try {
-				Runtime.getRuntime().exec("java -jar bootstrap.jar");
-				exit(0, "Launcher update! Restart!");
-			} catch (IOException e) {
-				logging.printException(e);
-			}
+			if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+			
+			logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
+				try {
+					Runtime.getRuntime().exec("java -jar bootstrap.jar");
+					exit(0, "Launcher update! Restart!");
+				} catch (IOException e) {
+					logging.printException(e);
+				}
+			});
 		} else {
 			if (activePackageBean == null) {
 				logging.logDebug("no commands executed: no package selected!");
-				JOptionPane.showMessageDialog(null, "Launcher finished.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+				if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher finished.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 				return;
 			}
 			// NO UPDATE REQUIRES A RESTART -> EXECUTE 'POST_COMMAND' IN
 			// 'POST_CWD'
 			if (activePackageBean.getPostCommand() != null) {
-				JOptionPane.showMessageDialog(null, "Launcher finished, execute post command '" + activePackageBean.getPostCommand() + "'.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
-				try {
-					logging.logInfo("Execute '"
-							+ activePackageBean.getPostCommand() + "' ...");
-					Runtime.getRuntime().exec(activePackageBean.getPostCommand(),
-							null, activePackageBean.getPostCWD());
-				} catch (IOException e) {
-					logging.printException(e);
-				}
+				if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher finished, execute post command '" + activePackageBean.getPostCommand() + "'.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+				
+				logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
+					try {
+						logging.logInfo("Execute '"+ activePackageBean.getPostCommand() + "' ...");
+						Runtime.getRuntime().exec(activePackageBean.getPostCommand(), null, activePackageBean.getPostCWD());
+					} catch (IOException e) {
+						logging.printException(e);
+					}
+				});
 			} else {
-				JOptionPane.showMessageDialog(null, "Launcher finished, no post command.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+				if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher finished, no post command.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+				logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> exit(0, "Launcher finished!"));
 			}
-
-			exit(0, "Launcher finished!");
 		}
 	}
 

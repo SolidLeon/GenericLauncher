@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * serverlist.txt entries
  * 
- * @author Markus
+ * @author SolidLeon
  *
  */
 public class ServerListEntry {

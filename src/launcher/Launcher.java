@@ -2,14 +2,18 @@ package launcher;
 
 import java.util.Date;
 
+import javax.swing.SwingUtilities;
+
 import launcher.controller.ComponentController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.PackageController;
 import launcher.controller.ServerListController;
+import launcher.gui.StatusDisplay;
 
 public class Launcher implements Runnable {
 
 	private Logging logging;
+	private StatusDisplay statusDisplay;
 	
 	public static void main(String[] args) {
 		new Thread(new Launcher()).start();
@@ -17,10 +21,15 @@ public class Launcher implements Runnable {
 
 	@Override
 	public void run() {
-		logging = new Logging();
-
+		statusDisplay = new StatusDisplay();
+		SwingUtilities.invokeLater(() -> statusDisplay.setVisible(true)); 
+		
+		logging = new Logging(statusDisplay);
 		logBasicInfo();
 		
+		logging.getStatusListener().setOverallProgress(0, 0, 4);
+		
+		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
 		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
 		ServerListController serverListController = new ServerListController(logging);
@@ -38,6 +47,7 @@ public class Launcher implements Runnable {
 
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		launcherRestartController.run();
+		
 	}
 
 	private void logBasicInfo() {
