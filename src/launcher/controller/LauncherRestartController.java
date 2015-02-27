@@ -72,9 +72,8 @@ public class LauncherRestartController implements Runnable {
 				});
 			} else {
 				if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher finished, no post command.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
+				logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> exit(0, "Launcher finished!"));
 			}
-
-//			logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> exit(0, "Launcher finished!"));
 		}
 	}
 

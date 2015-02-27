@@ -48,7 +48,6 @@ public class Launcher implements Runnable {
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		launcherRestartController.run();
 		
-		statusDisplay.setStatusCompletedExecCommandOnExit(null);
 	}
 
 	private void logBasicInfo() {
