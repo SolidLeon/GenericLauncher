@@ -168,6 +168,17 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	
 	/**
 	 * - Sets a runner being executed after close button has been pressed.
+	 * - Calls {@link #setStatusCompleted()}
+	 */
+	@Override
+	public void setStatusCompletedExecCommandOnExit(Runnable runner) {
+		this.exitRunner = runner;
+		setStatusCompleted(); // SolidLeon #4 20150227
+	}
+
+	/**
+	 * SolidLeon #4 20150227
+	 * 
 	 * - Enabled the close button
 	 * - Sets a fancy text for the close button
 	 * - Sets overall progress to max
@@ -175,9 +186,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	 * - Sets current progress to max
 	 * - Sets 'Done!' as curren progress text
 	 */
-	@Override
-	public void setStatusCompletedExecCommandOnExit(Runnable runner) {
-		this.exitRunner = runner;
+	public void setStatusCompleted() {
 		closeButton.setEnabled(true);
 		closeButton.setText("Completed! Close me!");
 		overallProgress.setValue(overallProgress.getMaximum());
