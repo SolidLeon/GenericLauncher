@@ -7,6 +7,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.swing.JOptionPane;
+
 import launcher.gui.IStatusListener;
 
 /**
@@ -93,9 +95,11 @@ public class Logging {
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} finally {
-			logDebug("Stop due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
+			logDebug("Exit due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
 			e.printStackTrace(ps);
 			statusListener.setStatusCompletedExecCommandOnExit(null);
+			JOptionPane.showMessageDialog(null, "Exception see '" + exceptionFile.getAbsolutePath() + "'");
+			System.exit(99);
 		}
 	}
 	
