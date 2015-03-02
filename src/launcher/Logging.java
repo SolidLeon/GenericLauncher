@@ -93,10 +93,9 @@ public class Logging {
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} finally {
-			logDebug("Exit due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
+			logDebug("Stop due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
 			e.printStackTrace(ps);
-			close();
-			System.exit(99);
+			statusListener.setStatusCompletedExecCommandOnExit(null);
 		}
 	}
 	
