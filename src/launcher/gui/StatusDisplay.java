@@ -187,7 +187,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	 */
 	public void setStatusCompleted() {
 		closeButton.setEnabled(true);
-		closeButton.setText("Launch...");
+		closeButton.setText(exitRunner == null ? "Close" : "Launch...");
 		overallProgress.setValue(overallProgress.getMaximum());
 		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
