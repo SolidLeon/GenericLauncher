@@ -49,7 +49,6 @@ public class Launcher implements Runnable {
 		launcherRestartController.run();
 		
 		statusDisplay.setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
-		
 	}
 
 	private void logBasicInfo() {
@@ -67,6 +66,8 @@ public class Launcher implements Runnable {
 				+ System.getProperty("java.version") + "'");
 		logging.logInfo("System.getProperty('java.vendor') == '"
 				+ System.getProperty("java.vendor") + "'");
+		logging.logInfo("System.getProperty('java.home') == '"
+				+ System.getProperty("java.home") + "'");
 		logging.logInfo("System.getProperty('sun.arch.data.model') == '"
 				+ System.getProperty("sun.arch.data.model") + "'");
 		logging.logInfo("System.getProperty('user.dir') == " + "'" + System.getProperty("user.dir") + "'");
