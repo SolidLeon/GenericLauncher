@@ -98,7 +98,7 @@ public class Logging {
 			logDebug("Exit due to exception, see: '" + exceptionFile.getAbsolutePath() + "'");
 			e.printStackTrace(ps);
 			statusListener.setStatusCompletedExecCommandOnExit(null);
-			JOptionPane.showMessageDialog(null, "Exception see '" + exceptionFile.getAbsolutePath() + "'");
+			JOptionPane.showMessageDialog(null, "Error see '" + exceptionFile.getAbsolutePath() + "'", "Error", JOptionPane.ERROR_MESSAGE);
 			System.exit(99);
 		}
 	}
