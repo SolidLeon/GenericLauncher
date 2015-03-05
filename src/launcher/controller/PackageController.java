@@ -66,7 +66,7 @@ public class PackageController implements Runnable {
 			logging.logDebug("  No components specified by this package!");
 		else 
 			for (File f : selectedPackageBean.getComponentFiles())
-				logging.logDebug("  COMPONENT=        '" + f.getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  COMPONENT=        '" + f.getAbsolutePath() + "'");
 	}
 	
 	/**
@@ -88,7 +88,7 @@ public class PackageController implements Runnable {
 		for (File f : file.listFiles()) {
 			logging.getStatusListener().setCurrentProgress(1 + logging.getStatusListener().getCurrentProgress());
 			if (f.getName().endsWith(".cfg")) {
-				logging.logDebug("  ADD '" + f.getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  ADD '" + f.getAbsolutePath() + "'");
 				configurationList.add(f);
 			}
 		}
