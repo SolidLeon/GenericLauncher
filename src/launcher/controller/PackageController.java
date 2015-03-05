@@ -59,9 +59,9 @@ public class PackageController implements Runnable {
 		logging.logInfo("Selected package '" + selection + "'");
 		selectedPackageBean = readPackageBean((File) selection);
 		logging.logDebug("Package             '" + ((File) selection).getName() + "'");
-		logging.logDebug("  BASE PATH=        '" + selectedPackageBean.getBasePath().getAbsolutePath() + "'");
-		logging.logDebug("  POST COMMAND=     '" + selectedPackageBean.getPostCommand() + "'");
-		logging.logDebug("  POST CWD=         '" + selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
+		logging.log(LogLevel.CONFIG, "  BASE PATH=        '" + selectedPackageBean.getBasePath().getAbsolutePath() + "'");
+		logging.log(LogLevel.CONFIG, "  POST COMMAND=     '" + selectedPackageBean.getPostCommand() + "'");
+		logging.log(LogLevel.CONFIG, "  POST CWD=         '" + selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
 		if (selectedPackageBean.getComponentFiles().isEmpty())
 			logging.logDebug("  No components specified by this package!");
 		else 

@@ -1,5 +1,6 @@
 package launcher.gui;
 
+import java.awt.Color;
 import java.io.OutputStream;
 
 /**
@@ -21,7 +22,8 @@ public interface IStatusListener {
 	void setOverallProgress(String text);
 	int getOverallProgress();
 	void addOverallProgress(int i);
-	OutputStream getOutputStream();
+//	OutputStream getOutputStream()
+	public void appendText(Color fg, Color bg, String str);
 	void setStatusCompletedExecCommandOnExit(Runnable runner);
 	
 }

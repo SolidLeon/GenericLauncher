@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.swing.SwingUtilities;
 
+import launcher.Logging.LogLevel;
 import launcher.controller.ComponentController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.PackageController;
@@ -49,6 +50,7 @@ public class Launcher implements Runnable {
 		launcherRestartController.run();
 		
 		statusDisplay.setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
+		logging.log(LogLevel.FINE, "Done!");
 	}
 
 	private void logBasicInfo() {

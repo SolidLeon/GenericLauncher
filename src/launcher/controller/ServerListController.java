@@ -11,6 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import launcher.Logging;
+import launcher.Logging.LogLevel;
 import launcher.beans.ServerListEntry;
 
 public class ServerListController implements Runnable {
@@ -66,6 +67,7 @@ public class ServerListController implements Runnable {
 		logging.logInfo(serverList.size() + " server loaded!");
 		Object serverSelectionObject = serverList.get(0);
 		if (serverList.size() > 1) {
+			
 			serverSelectionObject = JOptionPane.showInputDialog(null,
 					"Select a server you want to connect to: ", "Launcher",
 					JOptionPane.QUESTION_MESSAGE, null, serverList.toArray(),
@@ -111,7 +113,7 @@ public class ServerListController implements Runnable {
 			
 			logging.logDebug(String.format("Server list '%s' contains %d entries", file.getName(), serverList.size()));
 			for (ServerListEntry entry : serverList)
-				logging.logDebug(String.format("  '%-30s'  '%s'", entry.getName(), entry.getBasePath()));
+				logging.log(LogLevel.CONFIG, String.format("  %-30s  '%s'", "'" + entry.getName() + "'", entry.getBasePath()));
 			
 		} catch (IOException e) {
 			logging.printException(e); // markusmannel@gmail.com 20150224
