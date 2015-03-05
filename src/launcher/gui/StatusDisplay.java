@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import javax.swing.text.DefaultCaret;
 
 /**
@@ -160,9 +161,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == closeButton) {
-			if (exitRunner != null)
-				exitRunner.run();
-			dispose();
+			new RunWorker().execute();
 		}
 	}
 	
@@ -188,11 +187,27 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	 */
 	public void setStatusCompleted() {
 		closeButton.setEnabled(true);
-		closeButton.setText("Completed! Close me!");
+		closeButton.setText(exitRunner == null ? "Close" : "Launch...");
 		overallProgress.setValue(overallProgress.getMaximum());
 		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
 		setCurrentProgress("Done!");
 	}
 	
+	
+	private class RunWorker extends SwingWorker<Void, Void> {
+
+		@Override
+		protected Void doInBackground() throws Exception {
+			if (exitRunner != null) {
+				exitRunner.run();
+			}
+			return null;
+		}
+		
+		@Override
+		protected void done() {
+			dispose();
+		}
+	}
 }
