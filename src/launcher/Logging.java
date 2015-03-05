@@ -1,5 +1,6 @@
 package launcher;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -23,15 +24,24 @@ public class Logging {
 
 	/** Logging PrintStream */
 	private PrintStream ps;
-	/** SolidLeon #4 20150227 OutputStream provided by IStatusListener */
-	private PrintStream displayTextStream;
 	
 	/** Logging SimpleDateFormat */
 	private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	/** LogLevel */
 	public enum LogLevel {
-		DEBUG,
-		INFO
+		DEBUG(Color.white, Color.gray),
+		INFO(Color.white, Color.black),
+		FINE(Color.white, Color.green.darker()),
+		ERROR(Color.white, Color.red.darker()),
+		CONFIG(Color.white, Color.magenta.darker());
+		
+		private LogLevel(Color bg, Color fg) {
+			this.bg = bg;
+			this.fg = fg;
+		}
+		
+		public Color bg;
+		public Color fg;
 	};
 	
 	/** SolidLeon #4 20150227  Status listener used to show progress */
@@ -50,7 +60,6 @@ public class Logging {
 			printException(e);
 		}
 		
-		displayTextStream = new PrintStream(statusListener.getOutputStream());
 		
 		statusListener.setCurrentProgress(statusListener.getCurrentProgress() + 1);
 		
@@ -116,12 +125,13 @@ public class Logging {
 		log(LogLevel.DEBUG, s);
 	}
 	public void log(LogLevel logLevel, String s) {
-		System.out.printf("[%s %5s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
-		displayTextStream.printf("[%s %5s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
+		s = String.format("[%s %8s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
+		System.out.printf(s);
+		statusListener.appendText(logLevel.fg, logLevel.bg, s);
 		
 	}
 	public void logEmptyLine(){
 		System.out.println();
-		displayTextStream.println();
+		statusListener.appendText(Color.black, Color.white, String.format("%n"));
 	}
 }

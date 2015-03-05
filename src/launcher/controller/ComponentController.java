@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import launcher.Logging;
+import launcher.Logging.LogLevel;
 import launcher.beans.ComponentBean;
 import launcher.beans.PackageBean;
 
@@ -59,10 +60,10 @@ public class ComponentController implements Runnable {
 				addComponentBeansRecursivly(remoteConfigs, componentBean.getSource(),componentBean.getTarget(), componentBean.getSource());
 			} else {
 				remoteConfigs.add(componentBean);
-				logging.logDebug("COMPONENT  '" + componentBean.getName() + "'");
-				logging.logDebug("  SOURCE=  '" + componentBean.getSource().getAbsolutePath() + "'");
-				logging.logDebug("  TARGET=  '" + componentBean.getTarget().getAbsolutePath() + "'");
-				logging.logDebug("  COMPARE= '" + (componentBean.getCompare() == null ? "None" : componentBean.getCompare().getAbsolutePath()) + "'");
+				logging.log(LogLevel.INFO, "COMPONENT  '" + componentBean.getName() + "'");
+				logging.log(LogLevel.CONFIG, "  SOURCE=  '" + componentBean.getSource().getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  TARGET=  '" + componentBean.getTarget().getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  COMPARE= '" + (componentBean.getCompare() == null ? "None" : componentBean.getCompare().getAbsolutePath()) + "'");
 			}
 		}
 		logging.getStatusListener().setCurrentProgressToMax();
@@ -78,10 +79,10 @@ public class ComponentController implements Runnable {
 			cfg.setSource(source);
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(basePath.getAbsolutePath().length())));
 			cfg.setName(source.getName() + UUID.randomUUID().toString());
-			logging.logDebug("COMPONENT  '" + cfg.getName() + "'");
-			logging.logDebug("  SOURCE=  '" + cfg.getSource().getAbsolutePath()+ "'");
-			logging.logDebug("  TARGET=  '" + cfg.getTarget().getAbsolutePath()+ "'");
-			logging.logDebug("  COMPARE= '"+ (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
+			logging.log(LogLevel.INFO, "COMPONENT  '" + cfg.getName() + "'");
+			logging.log(LogLevel.CONFIG, "  SOURCE=  '" + cfg.getSource().getAbsolutePath()+ "'");
+			logging.log(LogLevel.CONFIG, "  TARGET=  '" + cfg.getTarget().getAbsolutePath()+ "'");
+			logging.log(LogLevel.CONFIG, "  COMPARE= '"+ (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
 			remoteConfigs.add(cfg);
 		} else {
 			for (File ff : source.listFiles())

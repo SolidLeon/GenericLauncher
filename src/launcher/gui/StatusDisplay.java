@@ -1,10 +1,10 @@
 package launcher.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -19,9 +19,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
 import javax.swing.SwingWorker;
 import javax.swing.text.DefaultCaret;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 /**
  * SolidLeon #4 20150227 
@@ -34,7 +38,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 
 	private JProgressBar overallProgress;
 	private JProgressBar currentProgress;
-	private JTextArea text;
+	private JTextPane text;
 	/** OutputStream redirecting output to JTextArea 'text' */
 	private OutputStream textOut;
 	private JButton closeButton;
@@ -62,7 +66,7 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		progressPanel.add(progressLabelPanel, BorderLayout.WEST);
 		progressPanel.add(progressBarPanel, BorderLayout.CENTER);
 		add(progressPanel, BorderLayout.NORTH);
-		text = new JTextArea();
+		text = new JTextPane();
 		text.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		DefaultCaret caret = (DefaultCaret)text.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
@@ -75,7 +79,12 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		textOut = new OutputStream() {
 			@Override
 			public void write(int b) throws IOException {
-				text.append(String.valueOf((char) b));
+				try {
+					text.getDocument().insertString(text.getDocument().getLength(), String.valueOf((char)b), null);
+				} catch (BadLocationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		};
 		
@@ -96,11 +105,6 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		closeButton.setEnabled(false);
 	}
 	
-	@Override
-	public OutputStream getOutputStream() {
-		return textOut;
-	}
-
 	public void setProgress(JProgressBar bar, int value, int min, int max, String text) {
 		bar.setMinimum(min);
 		bar.setMaximum(max);
@@ -192,6 +196,26 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
 		setCurrentProgress("Done!");
+		
+	}
+	
+	public void appendText(Color fg, Color bg, String str) {
+		SimpleAttributeSet aset = new SimpleAttributeSet();
+		StyleConstants.setForeground(aset, fg);
+		StyleConstants.setBackground(aset, bg);
+		
+		int start = text.getCaretPosition();
+		int len = text.getText().length();
+		StyledDocument sd = (StyledDocument) text.getDocument();
+		sd.setCharacterAttributes(start, len, aset, false);
+		
+
+		try {
+			text.getDocument().insertString(text.getDocument().getLength(), str, aset);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
