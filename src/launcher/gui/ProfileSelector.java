@@ -144,7 +144,7 @@ public class ProfileSelector extends JPanel {
 				model.reload(root);
 				
 				PackageController packageCon = new PackageController(null, serverBean);
-				List<File> packageList = packageCon.getPackageBeanList(serverBean.getBasePath());
+				List<File> packageList = packageCon.getPackageBeanFileList(serverBean.getBasePath());
 				for (File packageFile : packageList) {
 					PackageBean packageBean = packageCon.readPackageBean(packageFile);
 					DefaultMutableTreeNode node = new DefaultMutableTreeNode(packageBean);
