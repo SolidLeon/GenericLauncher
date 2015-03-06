@@ -75,7 +75,7 @@ public class PackageController implements Runnable {
 	 * 
 	 * @param file
 	 *            - a directory containing cfg files
-	 * @return a list containing all cfg files withing 'file'
+	 * @return a list containing all cfg files within 'file'
 	 */
 	public List<File> getPackageBeanList(File file) {
 		if (logging != null) logging.logDebug("Load package(s) from '" + file.getAbsolutePath() + "'");
