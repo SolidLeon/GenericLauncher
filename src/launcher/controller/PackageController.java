@@ -37,7 +37,7 @@ public class PackageController implements Runnable {
 			if (logging != null) logging.logDebug("selectedServer == null");
 			return;
 		}
-		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
+		List<File> packageBeanList = getPackageBeanFileList(selectedServer.getBasePath());
 		if (packageBeanList.isEmpty()) {
 			if (logging != null) logging.logDebug("no packages loaded!");
 			return; //No launcher configurations found!
@@ -77,7 +77,7 @@ public class PackageController implements Runnable {
 	 *            - a directory containing cfg files
 	 * @return a list containing all cfg files within 'file'
 	 */
-	public List<File> getPackageBeanList(File file) {
+	public List<File> getPackageBeanFileList(File file) {
 		if (logging != null) logging.logDebug("Load package(s) from '" + file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
 			if (logging != null) logging.logDebug("This is not a directory!");
