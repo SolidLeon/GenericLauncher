@@ -97,7 +97,7 @@ public class ComponentController implements Runnable {
 	 * 
 	 * @param basePath
 	 * @param remoteFile
-	 * @return
+	 * @return ComponentBean constructed from remoteFile
 	 */
 	private ComponentBean readComponentBean(File basePath,
 			File remoteFile) {
