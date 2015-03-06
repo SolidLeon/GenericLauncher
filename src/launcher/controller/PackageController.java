@@ -103,7 +103,7 @@ public class PackageController implements Runnable {
 	 * {@link PackageBean}
 	 * 
 	 * @param packageBeanFile
-	 * @return
+	 * @return packageBean constructed from the package file packageBeanFile
 	 */
 	public PackageBean readPackageBean(File packageBeanFile) {
 		PackageBean packageBean = new PackageBean();
