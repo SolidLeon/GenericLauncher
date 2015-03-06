@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.swing.JOptionPane;
 
 import launcher.Logging;
+import launcher.Logging.LogLevel;
 import launcher.beans.PackageBean;
 
 public class LauncherRestartController implements Runnable {
@@ -30,7 +31,8 @@ public class LauncherRestartController implements Runnable {
 		if (bootstrapUpdated) {
 			logging.logDebug("Bootstrap update! Restart!");
 			if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Bootstrap updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
-			
+
+			logging.log(LogLevel.INFO, "On launch execute 'java -jar bootstrap.jar'");
 			logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
 				try {
 					Runtime.getRuntime().exec("java -jar bootstrap.jar");
@@ -42,7 +44,8 @@ public class LauncherRestartController implements Runnable {
 		} else if (new File("launcher_new.jar").exists()) {
 			logging.logDebug("Launcher update! Restart!");
 			if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher updated!", "Launcher", JOptionPane.INFORMATION_MESSAGE);
-			
+
+			logging.log(LogLevel.INFO, "On launch execute 'java -jar bootstrap.jar'");
 			logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
 				try {
 					Runtime.getRuntime().exec("java -jar bootstrap.jar");
@@ -62,6 +65,7 @@ public class LauncherRestartController implements Runnable {
 			if (activePackageBean.getPostCommand() != null) {
 				if (logging.isShwoStatusMessages()) JOptionPane.showMessageDialog(null, "Launcher finished, execute post command '" + activePackageBean.getPostCommand() + "'.", "Launcher", JOptionPane.INFORMATION_MESSAGE);
 				
+				logging.log(LogLevel.INFO, "On launch execute '"+ activePackageBean.getPostCommand() + "'");
 				logging.getStatusListener().setStatusCompletedExecCommandOnExit(() -> {
 					try {
 						logging.logInfo("Execute '"+ activePackageBean.getPostCommand() + "' ...");
