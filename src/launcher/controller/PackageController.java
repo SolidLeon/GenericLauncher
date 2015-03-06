@@ -12,16 +12,16 @@ import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
 import launcher.beans.PackageBean;
-import launcher.beans.ServerListEntry;
+import launcher.beans.ServerBean;
 
 public class PackageController implements Runnable {
 
 	private Logging logging;
-	private ServerListEntry selectedServer;
+	private ServerBean selectedServer;
 	private PackageBean selectedPackageBean;
 	
 	public PackageController(Logging logging,
-			ServerListEntry selectedServer) {
+			ServerBean selectedServer) {
 		super();
 		this.logging = logging;
 		this.selectedServer = selectedServer;
@@ -34,39 +34,40 @@ public class PackageController implements Runnable {
 	@Override
 	public void run() {
 		if (selectedServer == null) {
-			logging.logDebug("selectedServer == null");
+			if (logging != null) logging.logDebug("selectedServer == null");
 			return;
 		}
 		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
 		if (packageBeanList.isEmpty()) {
-			logging.logDebug("no packages loaded!");
+			if (logging != null) logging.logDebug("no packages loaded!");
 			return; //No launcher configurations found!
 		}
 
-		logging.logInfo(packageBeanList.size() + " packages(s) loaded!");
+		if (logging != null) logging.logInfo(packageBeanList.size() + " packages(s) loaded!");
 		Object selection = packageBeanList.get(0);
 		if (packageBeanList.size() > 1) {
-			logging.logDebug("User selects package ...");
+			if (logging != null) logging.logDebug("User selects package ...");
 			selection = JOptionPane.showInputDialog(null,
 													"Select a package:", "Launcher " + Launcher.class.getPackage() .getImplementationVersion(),
 													JOptionPane.QUESTION_MESSAGE, null,
 													packageBeanList.toArray(), packageBeanList.get(0));
 			if (selection == null) {
-				logging.logDebug("selection == null");
+				if (logging != null) logging.logDebug("selection == null");
 				return; //No configuration selected, or user cancelled
 			}
 		}
-		logging.logInfo("Selected package '" + selection + "'");
+		if (logging != null) logging.logInfo("Selected package '" + selection + "'");
 		selectedPackageBean = readPackageBean((File) selection);
-		logging.logDebug("Package             '" + ((File) selection).getName() + "'");
-		logging.log(LogLevel.CONFIG, "  BASE PATH=        '" + selectedPackageBean.getBasePath().getAbsolutePath() + "'");
-		logging.log(LogLevel.CONFIG, "  POST COMMAND=     '" + selectedPackageBean.getPostCommand() + "'");
-		logging.log(LogLevel.CONFIG, "  POST CWD=         '" + selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
-		if (selectedPackageBean.getComponentFiles().isEmpty())
-			logging.logDebug("  No components specified by this package!");
-		else 
+		if (logging != null) logging.logDebug("Package             '" + ((File) selection).getName() + "'");
+		if (logging != null) logging.log(LogLevel.CONFIG, "  BASE PATH=        '" + selectedPackageBean.getBasePath().getAbsolutePath() + "'");
+		if (logging != null) logging.log(LogLevel.CONFIG, "  POST COMMAND=     '" + selectedPackageBean.getPostCommand() + "'");
+		if (logging != null) logging.log(LogLevel.CONFIG, "  POST CWD=         '" + selectedPackageBean.getPostCWD().getAbsolutePath() + "'");
+		if (selectedPackageBean.getComponentFiles().isEmpty()) {
+			if (logging != null) logging.logDebug("  No components specified by this package!");
+		} else {
 			for (File f : selectedPackageBean.getComponentFiles())
-				logging.log(LogLevel.CONFIG, "  COMPONENT=        '" + f.getAbsolutePath() + "'");
+				if (logging != null) logging.log(LogLevel.CONFIG, "  COMPONENT=        '" + f.getAbsolutePath() + "'");
+		}
 	}
 	
 	/**
@@ -76,24 +77,24 @@ public class PackageController implements Runnable {
 	 *            - a directory containing cfg files
 	 * @return a list containing all cfg files withing 'file'
 	 */
-	private List<File> getPackageBeanList(File file) {
-		logging.logDebug("Load package(s) from '" + file.getAbsolutePath() + "'");
+	public List<File> getPackageBeanList(File file) {
+		if (logging != null) logging.logDebug("Load package(s) from '" + file.getAbsolutePath() + "'");
 		if (!file.isDirectory()) {
-			logging.logDebug("This is not a directory!");
-			logging.logDebug(file.getAbsolutePath());
+			if (logging != null) logging.logDebug("This is not a directory!");
+			if (logging != null) logging.logDebug(file.getAbsolutePath());
 			return null;
 		}
 		List<File> configurationList = new ArrayList<>();
-		logging.getStatusListener().setCurrentProgress(0, 0, file.listFiles().length, "Collect packages ...");
+		if (logging != null) logging.getStatusListener().setCurrentProgress(0, 0, file.listFiles().length, "Collect packages ...");
 		for (File f : file.listFiles()) {
-			logging.getStatusListener().setCurrentProgress(1 + logging.getStatusListener().getCurrentProgress());
+			if (logging != null) logging.getStatusListener().setCurrentProgress(1 + logging.getStatusListener().getCurrentProgress());
 			if (f.getName().endsWith(".cfg")) {
-				logging.log(LogLevel.CONFIG, "  ADD '" + f.getAbsolutePath() + "'");
+				if (logging != null) logging.log(LogLevel.CONFIG, "  ADD '" + f.getAbsolutePath() + "'");
 				configurationList.add(f);
 			}
 		}
-		logging.getStatusListener().setCurrentProgressToMax();
-		logging.logDebug("DONE!");
+		if (logging != null) logging.getStatusListener().setCurrentProgressToMax();
+		if (logging != null) logging.logDebug("DONE!");
 		return configurationList;
 	}
 
@@ -104,17 +105,17 @@ public class PackageController implements Runnable {
 	 * @param packageBeanFile
 	 * @return
 	 */
-	private PackageBean readPackageBean(File packageBeanFile) {
+	public PackageBean readPackageBean(File packageBeanFile) {
 		PackageBean packageBean = new PackageBean();
 
 		try {
 			List<String> lines = Files.readAllLines(packageBeanFile.toPath());
 			List<File> componentFileList = new ArrayList<>();
 
-			logging.getStatusListener().setCurrentProgress(0, 0, lines.size(), "Parse package file ...");
-			logging.getStatusListener().addOverallProgress(1);
+			if (logging != null) logging.getStatusListener().setCurrentProgress(0, 0, lines.size(), "Parse package file ...");
+			if (logging != null) logging.getStatusListener().addOverallProgress(1);
 			for (String line : lines) {
-				logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
+				if (logging != null) logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
 				if (line.startsWith("BASE_PATH=")) {
 					String sBasePath = line.substring("BASE_PATH=".length());
 					packageBean.setBasePath(new File(sBasePath));
@@ -154,7 +155,7 @@ public class PackageController implements Runnable {
 			}
 
 		} catch (IOException e) {
-			logging.printException(e);
+			if (logging != null) logging.printException(e);
 			return null;
 		}
 

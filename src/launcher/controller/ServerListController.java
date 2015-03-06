@@ -12,13 +12,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import launcher.Logging;
 import launcher.Logging.LogLevel;
-import launcher.beans.ServerListEntry;
+import launcher.beans.ServerBean;
 
 public class ServerListController implements Runnable {
 
 	private Logging logging;
-	private List<ServerListEntry> serverList = new ArrayList<>();
-	private ServerListEntry selected;
+	private List<ServerBean> serverList = new ArrayList<>();
+	private ServerBean selected;
 	
 	
 	public ServerListController(Logging logging) {
@@ -26,11 +26,11 @@ public class ServerListController implements Runnable {
 		this.logging = logging;
 	}
 	
-	public ServerListEntry getSelected() {
+	public ServerBean getSelected() {
 		return selected;
 	}
 
-	public List<ServerListEntry> getServerList() {
+	public List<ServerBean> getServerList() {
 		return serverList;
 	}
 	
@@ -46,25 +46,25 @@ public class ServerListController implements Runnable {
 			int rc = jfc.showOpenDialog(null); 
 			if (rc == JFileChooser.APPROVE_OPTION) {
 				selectedServerList = jfc.getSelectedFile();
-				logging.logDebug("User selected serverlist file '" + selectedServerList.getAbsolutePath() + "'");
+				if (logging != null) logging.logDebug("User selected serverlist file '" + selectedServerList.getAbsolutePath() + "'");
 				if (!selectedServerList.exists() || selectedServerList.isDirectory()) {
-					logging.logDebug("Server list file is invalid!");
+					if (logging != null) logging.logDebug("Server list file is invalid!");
 					JOptionPane.showMessageDialog(jfc, "Invalid server list selected!");
 					selectedServerList = null;
 				}
 			} else if (rc == JFileChooser.CANCEL_OPTION) {
-				logging.logDebug("User cancelled server list selection");
+				if (logging != null) logging.logDebug("User cancelled server list selection");
 				return;
 			}
 		}
 		
 		readServerList(serverList, selectedServerList);
 		if (serverList.isEmpty()) {
-			logging.logDebug("no server found");
+			if (logging != null) logging.logDebug("no server found");
 			return; //No server found
 		}
 
-		logging.logInfo(serverList.size() + " server loaded!");
+		if (logging != null) logging.logInfo(serverList.size() + " server loaded!");
 		Object serverSelectionObject = serverList.get(0);
 		if (serverList.size() > 1) {
 			
@@ -76,9 +76,9 @@ public class ServerListController implements Runnable {
 				return; //No server selected or user cancelled
 			}
 		}
-		selected = (ServerListEntry) serverSelectionObject;
+		selected = (ServerBean) serverSelectionObject;
 
-		logging.logInfo("Selected server '" + selected + "'");
+		if (logging != null) logging.logInfo("Selected server '" + selected + "'");
 	}
 
 	/**
@@ -87,36 +87,37 @@ public class ServerListController implements Runnable {
 	 * @param serverList
 	 * @param file
 	 */
-	private void readServerList(List<ServerListEntry> serverList,
+	public void readServerList(List<ServerBean> serverList,
 			File file) {
 		try {
-			logging.logDebug("Read server list from '" + file.getAbsolutePath() + "'");
+			if (logging != null) logging.logDebug("Read server list from '" + file.getAbsolutePath() + "'");
 
 			List<String> lines = Files.readAllLines(file.toPath());
-			logging.getStatusListener().setCurrentProgress(0, 0, lines.size(), "Read server list from '" + file.getAbsolutePath() + "' ...");
-			logging.getStatusListener().addOverallProgress(1);
+			if (logging != null) logging.getStatusListener().setCurrentProgress(0, 0, lines.size(), "Read server list from '" + file.getAbsolutePath() + "' ...");
+			if (logging != null) logging.getStatusListener().addOverallProgress(1);
 			for (String line : lines) {
-				logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
+				if (logging != null) logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
 				int idx = line.indexOf('=');
 				if (idx == -1)
 					continue;
 				String name = line.substring(0, idx).trim();
 				String basePath = line.substring(idx + 1).trim();
 
-				ServerListEntry entry = new ServerListEntry();
+				ServerBean entry = new ServerBean();
 				entry.setName(name);
 				entry.setBasePath(new File(basePath));
 
 				serverList.add(entry);
 			}
-			logging.getStatusListener().setCurrentProgressToMax(); //set to max
+			if (logging != null) logging.getStatusListener().setCurrentProgressToMax(); //set to max
 			
-			logging.logDebug(String.format("Server list '%s' contains %d entries", file.getName(), serverList.size()));
-			for (ServerListEntry entry : serverList)
-				logging.log(LogLevel.CONFIG, String.format("  %-30s  '%s'", "'" + entry.getName() + "'", entry.getBasePath()));
+			if (logging != null) logging.logDebug(String.format("Server list '%s' contains %d entries", file.getName(), serverList.size()));
+			if (logging != null) 
+				for (ServerBean entry : serverList)
+					logging.log(LogLevel.CONFIG, String.format("  %-30s  '%s'", "'" + entry.getName() + "'", entry.getBasePath()));
 			
 		} catch (IOException e) {
-			logging.printException(e); // markusmannel@gmail.com 20150224
+			if (logging != null) logging.printException(e); // markusmannel@gmail.com 20150224
 										// Utilize our exception-to-file
 										// mechanism
 		}

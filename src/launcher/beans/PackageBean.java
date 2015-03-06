@@ -55,4 +55,52 @@ public class PackageBean {
 		return String.format("Package [BasePath='%s', PostCmd='%s', PostCWD='%s', Components=%d]",
 				basePath, postCommand, postCWD, componentFiles == null ? 0 : componentFiles.size());
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((basePath == null) ? 0 : basePath.hashCode());
+		result = prime * result
+				+ ((componentFiles == null) ? 0 : componentFiles.hashCode());
+		result = prime * result + ((postCWD == null) ? 0 : postCWD.hashCode());
+		result = prime * result
+				+ ((postCommand == null) ? 0 : postCommand.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PackageBean other = (PackageBean) obj;
+		if (basePath == null) {
+			if (other.basePath != null)
+				return false;
+		} else if (!basePath.equals(other.basePath))
+			return false;
+		if (componentFiles == null) {
+			if (other.componentFiles != null)
+				return false;
+		} else if (!componentFiles.equals(other.componentFiles))
+			return false;
+		if (postCWD == null) {
+			if (other.postCWD != null)
+				return false;
+		} else if (!postCWD.equals(other.postCWD))
+			return false;
+		if (postCommand == null) {
+			if (other.postCommand != null)
+				return false;
+		} else if (!postCommand.equals(other.postCommand))
+			return false;
+		return true;
+	}
+	
+	
 }

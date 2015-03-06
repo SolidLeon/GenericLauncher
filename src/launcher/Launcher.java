@@ -2,6 +2,7 @@ package launcher;
 
 import java.util.Date;
 
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import launcher.Logging.LogLevel;
@@ -9,6 +10,7 @@ import launcher.controller.ComponentController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.PackageController;
 import launcher.controller.ServerListController;
+import launcher.gui.ProfileSelector;
 import launcher.gui.StatusDisplay;
 
 public class Launcher implements Runnable {
@@ -22,6 +24,16 @@ public class Launcher implements Runnable {
 
 	@Override
 	public void run() {
+		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(new ProfileSelector());
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		SwingUtilities.invokeLater(() -> frame.setVisible(true));
+		
+		if (true)
+			return;
+		
 		statusDisplay = new StatusDisplay();
 		SwingUtilities.invokeLater(() -> statusDisplay.setVisible(true)); 
 		
