@@ -83,8 +83,8 @@ public class ServerListController implements Runnable {
 
 	/**
 	 * Reads a list of NAME=SERVER_PATH from a text file
-	 * 
-	 * @param serverList
+	 * and places them as ServerBeans into serverList
+	 * @param serverList - result
 	 * @param file
 	 */
 	public void readServerList(List<ServerBean> serverList,
