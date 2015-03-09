@@ -9,7 +9,9 @@ import launcher.controller.ComponentController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.PackageController;
 import launcher.controller.ServerListController;
+import launcher.gui.PreviewDialog;
 import launcher.gui.StatusDisplay;
+import launcher.gui.PreviewDialog.PreviewResult;
 
 public class Launcher implements Runnable {
 
@@ -43,12 +45,19 @@ public class Launcher implements Runnable {
 		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
 		componentController.run();
 
-		Downloader downloader = new Downloader(logging, componentController.getResultComponentList());
-		downloader.run();
-
-		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-		launcherRestartController.run();
+		PreviewDialog previewDialog = new PreviewDialog(statusDisplay, componentController.getResultComponentList());
+		previewDialog.setVisible(true);
 		
+		PreviewResult previewResult = previewDialog.getPreviewResult();
+		if (previewResult == PreviewResult.OK) {
+			Downloader downloader = new Downloader(logging, componentController.getResultComponentList());
+			downloader.run();
+	
+			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+			launcherRestartController.run();
+		} else {
+			logging.log(LogLevel.INFO, "User cancelled preview");
+		}
 		statusDisplay.setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
 	}
