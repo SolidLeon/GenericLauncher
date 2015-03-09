@@ -44,7 +44,7 @@ public class Launcher implements Runnable {
 
 		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
 		componentController.run();
-
+		
 		PreviewDialog previewDialog = new PreviewDialog(statusDisplay, componentController.getResultComponentList());
 		previewDialog.setVisible(true);
 		
