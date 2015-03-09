@@ -3,6 +3,7 @@ package launcher.controller;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +45,8 @@ public class ComponentController implements Runnable {
 			
 		readComponentBeans(resultComponentList, packageBean,
 				packageBean.getComponentFiles());	
+		
+		removeUptodate();
 	}
 
 	private void readComponentBeans(List<ComponentBean> remoteConfigs,
@@ -132,6 +135,21 @@ public class ComponentController implements Runnable {
 		}
 
 		return cfg;
+	}
+	
+	public void removeUptodate() {
+		List<ComponentBean> toRemove = new ArrayList<>();
+		for (ComponentBean componentBean : resultComponentList) {
+			logging.logDebug("CHECK '" + componentBean.getName() + "'");
+			File sourceComparisonFile = componentBean.getCompare() != null ? componentBean.getCompare() : componentBean.getTarget();
+			logging.logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
+			if (componentBean.getSource().lastModified() <= sourceComparisonFile.lastModified()) {
+				toRemove.add(componentBean);
+				logging.logDebug("  SKIP ALREADY UPDATE");
+				logging.logDebug("  '" + componentBean.getSource().getAbsolutePath() + "'" + " -> " + "'" + componentBean.getTarget().getAbsolutePath() + "'");
+			}
+		}
+		resultComponentList.removeAll(toRemove);
 	}
 
 }

@@ -36,15 +36,7 @@ public class Downloader {
 		logging.getStatusListener().addOverallProgress(1);
 		for (ComponentBean cfg : componentList) {
 			logging.getStatusListener().setCurrentProgress(logging.getStatusListener().getCurrentProgress() + 1);
-			logging.logDebug("CHECK DOWNLOAD '" + cfg.getName() + "'");
-			File sourceComparisonFile = cfg.getCompare() != null ? cfg.getCompare() : cfg.getTarget();
-			logging.logDebug("  COMPARE= '" + sourceComparisonFile.getAbsolutePath() + "'");
-			if (cfg.getSource().lastModified() > sourceComparisonFile.lastModified())
-				download(cfg);
-			else {
-				logging.logDebug("  SKIP ALREADY UPDATE");
-				logging.logDebug("  '" + cfg.getSource().getAbsolutePath() + "'" + " -> " + "'" + cfg.getTarget().getAbsolutePath() + "'");
-			}
+			download(cfg);
 		}
 		logging.log(LogLevel.FINE, String.format("Downloaded %d file(s) (%.2f kB)!", totalDownloads, (totalDownloadSize / 1024.0)));
 	}
