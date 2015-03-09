@@ -30,7 +30,7 @@ public class ServerBean {
 
 	@Override
 	public String toString() {
-		return name + " (" + basePath.getAbsolutePath() + ")";
+		return name;
 	}
 
 	@Override

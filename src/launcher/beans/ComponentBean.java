@@ -48,8 +48,7 @@ public class ComponentBean {
 	
 	@Override
 	public String toString() {
-		return String.format("Component [name='%s', source='%s', target='%s', compare='%s']",
-				name, source, target, compare);
+		return name;
 	}
 
 	@Override

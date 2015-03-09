@@ -234,4 +234,11 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 			dispose();
 		}
 	}
+
+
+	public void invokeProfileSelector() {
+		ProfileSelector profileSelector = new ProfileSelector(this);
+		profileSelector.setVisible(true);
+		
+	}
 }

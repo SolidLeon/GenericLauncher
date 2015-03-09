@@ -13,11 +13,20 @@ import launcher.Logging.LogLevel;
  *
  */
 public class PackageBean {
+	private String name;
 	private File basePath;
 	private String postCommand;
 	private File postCWD;
 	private List<File> componentFiles;
 
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public List<File> getComponentFiles() {
 		return componentFiles;
 	}
@@ -52,8 +61,7 @@ public class PackageBean {
 
 	@Override
 	public String toString() {
-		return String.format("Package [BasePath='%s', PostCmd='%s', PostCWD='%s', Components=%d]",
-				basePath, postCommand, postCWD, componentFiles == null ? 0 : componentFiles.size());
+		return name;
 	}
 
 	@Override

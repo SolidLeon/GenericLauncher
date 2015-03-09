@@ -107,6 +107,7 @@ public class PackageController implements Runnable {
 	 */
 	public PackageBean readPackageBean(File packageBeanFile) {
 		PackageBean packageBean = new PackageBean();
+		packageBean.setName(packageBeanFile.getName());
 
 		try {
 			List<String> lines = Files.readAllLines(packageBeanFile.toPath());

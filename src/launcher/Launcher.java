@@ -24,21 +24,13 @@ public class Launcher implements Runnable {
 
 	@Override
 	public void run() {
-		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(new ProfileSelector());
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		SwingUtilities.invokeLater(() -> frame.setVisible(true));
-		
-		if (true)
-			return;
-		
 		statusDisplay = new StatusDisplay();
 		SwingUtilities.invokeLater(() -> statusDisplay.setVisible(true)); 
 		
 		logging = new Logging(statusDisplay);
 		logBasicInfo();
+		
+		statusDisplay.invokeProfileSelector();
 		
 		logging.getStatusListener().setOverallProgress(0, 0, 4);
 		
