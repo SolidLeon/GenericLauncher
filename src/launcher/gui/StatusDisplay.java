@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -20,12 +21,22 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.text.BadLocationException;
 import javax.swing.SwingWorker;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+
+import launcher.Downloader;
+import launcher.Launcher;
+import launcher.Logging;
+import launcher.Logging.LogLevel;
+import launcher.controller.ComponentController;
+import launcher.controller.LauncherRestartController;
+import launcher.controller.PackageController;
+import launcher.controller.ServerListController;
+import launcher.gui.PreviewDialog.PreviewResult;
 
 /**
  * SolidLeon #4 20150227 
@@ -34,16 +45,19 @@ import javax.swing.text.StyledDocument;
  * @author SolidLeon
  *
  */
-public class StatusDisplay extends JFrame implements IStatusListener, ActionListener {
+public class StatusDisplay extends JFrame implements IStatusListener {
 
+	
 	private JProgressBar overallProgress;
 	private JProgressBar currentProgress;
 	private JTextPane text;
 	/** OutputStream redirecting output to JTextArea 'text' */
 	private OutputStream textOut;
 	private JButton closeButton;
+	private JButton startButton;
 	/** Runnable object to 'run' close button is pressed and before disposing */
 	private Runnable exitRunner;
+	private Logging logging;
 	
 	public StatusDisplay() {
 		setPreferredSize(new Dimension(800, 600));
@@ -67,14 +81,20 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		progressPanel.add(progressBarPanel, BorderLayout.CENTER);
 		add(progressPanel, BorderLayout.NORTH);
 		text = new JTextPane();
+		text.setEditable(false);
 		text.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		DefaultCaret caret = (DefaultCaret)text.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		add(new JScrollPane(text), BorderLayout.CENTER);
 		closeButton = new JButton("Close");
-		closeButton.addActionListener(this);
-		add(closeButton, BorderLayout.SOUTH);
+		closeButton.addActionListener(e -> new RunWorker().execute());
+		startButton = new JButton("Start");
+		startButton.addActionListener(e -> run());
+		JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
+		buttonPanel.add(startButton);
+		buttonPanel.add(closeButton);
+		add(buttonPanel, BorderLayout.SOUTH);
 		
 		textOut = new OutputStream() {
 			@Override
@@ -102,7 +122,10 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		pack();
 		setLocationRelativeTo(null);
 		
-		closeButton.setEnabled(false);
+
+		logging = new Logging(this);
+		logBasicInfo();
+		
 	}
 	
 	public void setProgress(JProgressBar bar, int value, int min, int max, String text) {
@@ -162,12 +185,6 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		setOverallProgress(getOverallProgress() + i);
 	}
 	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == closeButton) {
-			new RunWorker().execute();
-		}
-	}
 	
 	/**
 	 * - Sets a runner being executed after close button has been pressed.
@@ -220,7 +237,6 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 	
 	
 	private class RunWorker extends SwingWorker<Void, Void> {
-
 		@Override
 		protected Void doInBackground() throws Exception {
 			if (exitRunner != null) {
@@ -233,5 +249,64 @@ public class StatusDisplay extends JFrame implements IStatusListener, ActionList
 		protected void done() {
 			dispose();
 		}
+	}
+	
+	private void run() {
+		closeButton.setEnabled(false);
+		
+		logging.getStatusListener().setOverallProgress(0, 0, 4);
+		
+		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
+		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
+
+		ServerListController serverListController = new ServerListController(logging);
+		serverListController.run();
+
+		PackageController packageController = new PackageController(logging, serverListController.getSelected());
+		packageController.run();
+		launcherRestartController.setActivePackageBean(packageController.getSelectedPackageBean());
+
+		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
+		componentController.run();
+		
+		PreviewDialog previewDialog = new PreviewDialog(this, componentController.getResultComponentList());
+		previewDialog.setVisible(true);
+		
+		PreviewResult previewResult = previewDialog.getPreviewResult();
+		if (previewResult == PreviewResult.OK) {
+			Downloader downloader = new Downloader(logging, componentController.getResultComponentList());
+			downloader.run();
+	
+			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+			launcherRestartController.run();
+		} else {
+			logging.log(LogLevel.INFO, "User cancelled preview");
+		}
+		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
+		logging.log(LogLevel.FINE, "Done!");
+	}
+	
+
+	private void logBasicInfo() {
+		logging.logInfo("Launcher "
+				+ Launcher.class.getPackage().getImplementationVersion()
+				+ " started");
+		logging.logInfo("Current Time is " + new Date().toString());
+		logging.logInfo("System.getProperty('os.name') == '"
+				+ System.getProperty("os.name") + "'");
+		logging.logInfo("System.getProperty('os.version') == '"
+				+ System.getProperty("os.version") + "'");
+		logging.logInfo("System.getProperty('os.arch') == '"
+				+ System.getProperty("os.arch") + "'");
+		logging.logInfo("System.getProperty('java.version') == '"
+				+ System.getProperty("java.version") + "'");
+		logging.logInfo("System.getProperty('java.vendor') == '"
+				+ System.getProperty("java.vendor") + "'");
+		logging.logInfo("System.getProperty('java.home') == '"
+				+ System.getProperty("java.home") + "'");
+		logging.logInfo("System.getProperty('sun.arch.data.model') == '"
+				+ System.getProperty("sun.arch.data.model") + "'");
+		logging.logInfo("System.getProperty('user.dir') == " + "'" + System.getProperty("user.dir") + "'");
+		logging.logEmptyLine();
 	}
 }
