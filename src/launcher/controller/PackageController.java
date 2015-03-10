@@ -87,7 +87,7 @@ public class PackageController implements Runnable {
 		logging.getStatusListener().setCurrentProgress(0, 0, file.listFiles().length, "Collect packages ...");
 		for (File f : file.listFiles()) {
 			logging.getStatusListener().setCurrentProgress(1 + logging.getStatusListener().getCurrentProgress());
-			if (f.getName().endsWith(".cfg")) {
+			if (f.getName().endsWith(".pkg")) {
 				logging.log(LogLevel.CONFIG, "  ADD '" + f.getAbsolutePath() + "'");
 				configurationList.add(f);
 			}
