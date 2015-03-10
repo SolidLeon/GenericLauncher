@@ -28,11 +28,11 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import launcher.Downloader;
 import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
 import launcher.controller.ComponentController;
+import launcher.controller.DownloaderController;
 import launcher.controller.LauncherRestartController;
 import launcher.controller.PackageController;
 import launcher.controller.ServerListController;
@@ -274,7 +274,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		
 		PreviewResult previewResult = previewDialog.getPreviewResult();
 		if (previewResult == PreviewResult.OK) {
-			Downloader downloader = new Downloader(logging, componentController.getResultComponentList());
+			DownloaderController downloader = new DownloaderController(logging, componentController.getResultComponentList());
 			downloader.run();
 	
 			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART

@@ -1,4 +1,4 @@
-package launcher;
+package launcher.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,22 +7,24 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import sun.awt.AWTAccessor.ToolkitAccessor;
+import launcher.Logging;
 import launcher.Logging.LogLevel;
 import launcher.beans.ComponentBean;
 
-public class Downloader {
+public class DownloaderController implements Runnable {
 
 	private Logging logging;
 	private List<ComponentBean> componentList;
 	private int totalDownloads = 0;
 	private long totalDownloadSize = 0L;
 	
-	public Downloader(Logging logging, List<ComponentBean> componentList) {
+	public DownloaderController(Logging logging, List<ComponentBean> componentList) {
 		super();
 		this.logging = logging;
 		this.componentList = componentList;
 	}
 
+	@Override
 	public void run() {
 		if (componentList == null || componentList.isEmpty()) {
 			logging.logDebug("componentList == null");
