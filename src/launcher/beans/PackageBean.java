@@ -3,9 +3,6 @@ package launcher.beans;
 import java.io.File;
 import java.util.List;
 
-import launcher.Logging;
-import launcher.Logging.LogLevel;
-
 /**
  * *.cfg files
  * 

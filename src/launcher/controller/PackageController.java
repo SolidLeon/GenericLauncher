@@ -38,7 +38,7 @@ public class PackageController implements Runnable {
 			return;
 		}
 		List<File> packageBeanList = getPackageBeanList(selectedServer.getBasePath());
-		if (packageBeanList.isEmpty()) {
+		if (packageBeanList == null || packageBeanList.isEmpty()) {
 			logging.logDebug("no packages loaded!");
 			return; //No launcher configurations found!
 		}
@@ -70,17 +70,24 @@ public class PackageController implements Runnable {
 	}
 	
 	/**
-	 * Scans for launcher configurations (*.cfg files)
+	 * Scans for launcher configurations (*.pkg files)
 	 * 
 	 * @param file
-	 *            - a directory containing cfg files
-	 * @return a list containing all cfg files withing 'file'
+	 *            - a directory containing pkg files
+	 * @return a list containing all pkg files withing 'file'
 	 */
 	private List<File> getPackageBeanList(File file) {
 		logging.logDebug("Load package(s) from '" + file.getAbsolutePath() + "'");
+		if (!file.exists()) {
+			logging.log(LogLevel.ERROR, "Directory does not exist '" + file.getAbsolutePath() + "'");
+			return null;
+		}
+		if (!file.canRead()) {
+			logging.log(LogLevel.ERROR, "Can not read '" + file.getAbsolutePath() + "'");
+			return null;
+		}
 		if (!file.isDirectory()) {
-			logging.logDebug("This is not a directory!");
-			logging.logDebug(file.getAbsolutePath());
+			logging.logDebug("Not a directory '" + file.getAbsolutePath() + "'");
 			return null;
 		}
 		List<File> configurationList = new ArrayList<>();

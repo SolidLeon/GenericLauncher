@@ -1,7 +1,6 @@
 package launcher.gui;
 
 import java.awt.Color;
-import java.io.OutputStream;
 
 /**
  * SolidLeon #4 20150227 

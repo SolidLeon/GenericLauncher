@@ -5,15 +5,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -22,15 +24,22 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.xml.bind.JAXB;
 
 import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
+import launcher.beans.ComponentBean;
+import launcher.beans.PackageBean;
+import launcher.beans.xml.XmlComponentBean;
+import launcher.beans.xml.XmlLauncherConfigBean;
+import launcher.beans.xml.XmlPackageBean;
 import launcher.controller.ComponentController;
 import launcher.controller.DownloaderController;
 import launcher.controller.LauncherRestartController;
@@ -252,13 +261,92 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	}
 	
 	private void run() {
-		closeButton.setEnabled(false);
 		
-		logging.getStatusListener().setOverallProgress(0, 0, 4);
+		String mode = (String) JOptionPane.showInputDialog(this, "Select mode", "Mode", JOptionPane.QUESTION_MESSAGE, null, new Object[] { "FILE", "XML" }, "FILE");
+		if (mode != null) {
+			List<ComponentBean> components = null;
+			
+			closeButton.setEnabled(false);
+			
+			logging.getStatusListener().setOverallProgress(0, 0, 4);
+			
+			logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
+			LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
+	
+			if ("FILE".equals(mode)) {
+				components = runFile(launcherRestartController);
+			} else if ("XML".equals(mode)) {
+				components = runXML();
+			}
+	
+			PreviewDialog previewDialog = new PreviewDialog(this, components);
+			previewDialog.setVisible(true);
+			
+			PreviewResult previewResult = previewDialog.getPreviewResult();
+			if (previewResult == PreviewResult.OK) {
+				DownloaderController downloader = new DownloaderController(logging, components);
+				downloader.run();
 		
-		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
-		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
+				// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+				launcherRestartController.run();
+			} else {
+				logging.log(LogLevel.INFO, "User cancelled preview");
+			}
+		}
+		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
+		logging.log(LogLevel.FINE, "Done!");
+	}
+	
 
+	private List<ComponentBean> runXML() {
+		List<ComponentBean> components = null;
+		JFileChooser jfc = new JFileChooser();
+		jfc.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
+		jfc.setMultiSelectionEnabled(false);
+		int rc = jfc.showOpenDialog(this);
+		if (rc == JFileChooser.APPROVE_OPTION) {
+			components = new ArrayList<>();
+			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(jfc.getSelectedFile(), XmlLauncherConfigBean.class);
+			
+			Object sel = JOptionPane.showInputDialog(this, "Select a package", "Launch Package Selection", JOptionPane.QUESTION_MESSAGE, null, cfg.packages.toArray(), cfg.packages.get(0));
+			if (sel != null) {
+				XmlPackageBean pkg = (XmlPackageBean) sel;
+				while (pkg != null) {
+					PackageBean pkgBean = new PackageBean();
+					pkgBean.setBasePath(pkg.basePath != null ? pkg.basePath : cfg.basePath);
+					pkgBean.setPostCommand(pkg.postCommand);
+					double maxValue = 0.0;
+					((Double) maxValue).longValue();
+					pkgBean.setPostCWD(pkg.postCwd == null ? null : new File(pkg.postCwd));
+					
+					// Components...
+					for (XmlComponentBean com : pkg.components) {
+						File sourceFile = new File(com.source);
+						File targetFile = new File(com.target);
+						ComponentBean comp = new ComponentBean();
+						comp.setCompare(com.compare == null ? null : new File(com.compare));
+						comp.setName(com.name);
+						comp.setSource(sourceFile);
+						comp.setTarget(targetFile);
+						
+						if (comp.getCompare() != null) {
+							if (comp.getSource().lastModified() > comp.getCompare().lastModified()) {
+								components.add(comp);
+							}
+						} else {
+							if (comp.getSource().lastModified() > comp.getTarget().lastModified()) {
+								components.add(comp);
+							}
+						}
+					}
+					pkg = pkg.depends;
+				}
+			}
+		}
+		return components;
+	}
+
+	private List<ComponentBean> runFile(LauncherRestartController launcherRestartController) {
 		ServerListController serverListController = new ServerListController(logging);
 		serverListController.run();
 
@@ -269,23 +357,8 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
 		componentController.run();
 		
-		PreviewDialog previewDialog = new PreviewDialog(this, componentController.getResultComponentList());
-		previewDialog.setVisible(true);
-		
-		PreviewResult previewResult = previewDialog.getPreviewResult();
-		if (previewResult == PreviewResult.OK) {
-			DownloaderController downloader = new DownloaderController(logging, componentController.getResultComponentList());
-			downloader.run();
-	
-			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-			launcherRestartController.run();
-		} else {
-			logging.log(LogLevel.INFO, "User cancelled preview");
-		}
-		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
-		logging.log(LogLevel.FINE, "Done!");
+		return componentController.getResultComponentList();
 	}
-	
 
 	private void logBasicInfo() {
 		logging.logInfo("Launcher "
