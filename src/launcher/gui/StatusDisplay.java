@@ -311,6 +311,23 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(jfc.getSelectedFile(), XmlLauncherConfigBean.class);
 			logging.log(LogLevel.INFO, "  Done!");
 			
+			logging.log(LogLevel.CONFIG,     "BASE_PATH     " + "'" + (cfg.basePath == null ? "Inherit" : cfg.basePath.getAbsolutePath()) + "'");
+			logging.log(LogLevel.CONFIG, cfg.packages.size() + " package(s)");
+			for (XmlPackageBean pkgBean : cfg.packages) {
+				logging.log(LogLevel.CONFIG, "-- PACKAGE --");
+				logging.log(LogLevel.CONFIG, "NAME          " + "'" + pkgBean.name + "'");
+				logging.log(LogLevel.CONFIG, "POST_CWD      " + "'" + pkgBean.postCwd + "'");
+				logging.log(LogLevel.CONFIG, "POST_COMMAND  " + "'" + pkgBean.postCommand + "'");
+				logging.log(LogLevel.CONFIG, "BASE_PATH     " + "'" + pkgBean.basePath + "'");
+				logging.log(LogLevel.CONFIG, "DEPENDS       " + "'" + pkgBean.depends + "'");
+				logging.log(LogLevel.CONFIG, pkgBean.components.size() + " component(s)");
+				for (XmlComponentBean cm : pkgBean.components) {
+					logging.log(LogLevel.CONFIG, "SOURCE        " + "'" + cm.source + "'");
+					logging.log(LogLevel.CONFIG, "TARGET        " + "'" + cm.target + "'");
+					logging.log(LogLevel.CONFIG, "COMPARE       " + "'" + cm.compare + "'");
+				}
+			}
+			
 			logging.log(LogLevel.INFO, "User selectes a package...");
 			Object sel = JOptionPane.showInputDialog(this, "Select a package", "Launch Package Selection", JOptionPane.QUESTION_MESSAGE, null, cfg.packages.toArray(), cfg.packages.get(0));
 			if (sel != null) {
