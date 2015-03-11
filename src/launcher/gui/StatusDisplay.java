@@ -230,7 +230,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		StyleConstants.setForeground(aset, fg);
 		StyleConstants.setBackground(aset, bg);
 		
-		int start = text.getCaretPosition();
+		int start = text.getDocument().getLength();
 		int len = text.getText().length();
 		StyledDocument sd = (StyledDocument) text.getDocument();
 		sd.setCharacterAttributes(start, len, aset, false);
@@ -299,6 +299,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 
 	private List<ComponentBean> runXML() {
+		logging.log(LogLevel.INFO, "XML mode");
 		List<ComponentBean> components = null;
 		JFileChooser jfc = new JFileChooser();
 		jfc.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
@@ -306,39 +307,49 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		int rc = jfc.showOpenDialog(this);
 		if (rc == JFileChooser.APPROVE_OPTION) {
 			components = new ArrayList<>();
+			logging.log(LogLevel.INFO, "Read XML file '" + jfc.getSelectedFile().getAbsolutePath() + "' ...");
 			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(jfc.getSelectedFile(), XmlLauncherConfigBean.class);
+			logging.log(LogLevel.INFO, "  Done!");
 			
+			logging.log(LogLevel.INFO, "User selectes a package...");
 			Object sel = JOptionPane.showInputDialog(this, "Select a package", "Launch Package Selection", JOptionPane.QUESTION_MESSAGE, null, cfg.packages.toArray(), cfg.packages.get(0));
 			if (sel != null) {
+				logging.log(LogLevel.INFO, "User selected '" + sel.toString() + "'");
 				XmlPackageBean pkg = (XmlPackageBean) sel;
 				while (pkg != null) {
+					logging.log(LogLevel.INFO, "Add package '" + pkg.name + "'");
 					PackageBean pkgBean = new PackageBean();
 					pkgBean.setBasePath(pkg.basePath != null ? pkg.basePath : cfg.basePath);
 					pkgBean.setPostCommand(pkg.postCommand);
-					double maxValue = 0.0;
-					((Double) maxValue).longValue();
 					pkgBean.setPostCWD(pkg.postCwd == null ? null : new File(pkg.postCwd));
 					
 					// Components...
+					logging.log(LogLevel.INFO, "Add package components ...");
 					for (XmlComponentBean com : pkg.components) {
 						File sourceFile = new File(com.source);
 						File targetFile = new File(com.target);
 						ComponentBean comp = new ComponentBean();
 						comp.setCompare(com.compare == null ? null : new File(com.compare));
-						comp.setName(com.name);
 						comp.setSource(sourceFile);
 						comp.setTarget(targetFile);
 						
 						if (comp.getCompare() != null) {
 							if (comp.getSource().lastModified() > comp.getCompare().lastModified()) {
+								logging.log(LogLevel.INFO, "Add component '" + com.source + "'");
 								components.add(comp);
+							} else {
+								logging.log(LogLevel.INFO, "Skip component '" + com.source + "'");
 							}
 						} else {
 							if (comp.getSource().lastModified() > comp.getTarget().lastModified()) {
+								logging.log(LogLevel.INFO, "Add component '" + com.source + "'");
 								components.add(comp);
+							} else {
+								logging.log(LogLevel.INFO, "Skip component '" + com.source + "'");
 							}
 						}
 					}
+					logging.log(LogLevel.INFO, "Add depending package '" + pkg.depends + "'");
 					pkg = pkg.depends;
 				}
 			}
@@ -347,6 +358,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	}
 
 	private List<ComponentBean> runFile(LauncherRestartController launcherRestartController) {
+		logging.log(LogLevel.INFO, "File mode");
 		ServerListController serverListController = new ServerListController(logging);
 		serverListController.run();
 

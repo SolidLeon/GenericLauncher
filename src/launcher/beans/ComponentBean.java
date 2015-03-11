@@ -9,7 +9,6 @@ import java.io.File;
  *
  */
 public class ComponentBean {
-	private String name;
 	private File source;
 	private File target;
 	private File compare;
@@ -23,11 +22,7 @@ public class ComponentBean {
 	}
 
 	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
+		return source == null ? "UNKNOWN" : source.getName();
 	}
 
 	public File getSource() {
@@ -49,7 +44,7 @@ public class ComponentBean {
 	@Override
 	public String toString() {
 		return String.format("Component [name='%s', source='%s', target='%s', compare='%s']",
-				name, source, target, compare);
+				getName(), source, target, compare);
 	}
 
 }

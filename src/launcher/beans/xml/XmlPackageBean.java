@@ -28,7 +28,7 @@ public class XmlPackageBean {
 	@XmlAttribute(name="basePath", required=false)
 	public File basePath;
 
-	@XmlElement(name="component", type=XmlComponentBean.class)
+	@XmlElement(name="component")
 	public List<XmlComponentBean> components;
 	
 	@Override

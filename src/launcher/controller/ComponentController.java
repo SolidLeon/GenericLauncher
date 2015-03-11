@@ -80,7 +80,6 @@ public class ComponentController implements Runnable {
 			ComponentBean cfg = new ComponentBean();
 			cfg.setSource(source);
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(basePath.getAbsolutePath().length())));
-			cfg.setName(source.getName() + UUID.randomUUID().toString());
 			logging.log(LogLevel.INFO, "COMPONENT  '" + cfg.getName() + "'");
 			logging.log(LogLevel.CONFIG, "  SOURCE=  '" + cfg.getSource().getAbsolutePath()+ "'");
 			logging.log(LogLevel.CONFIG, "  TARGET=  '" + cfg.getTarget().getAbsolutePath()+ "'");
@@ -104,7 +103,6 @@ public class ComponentController implements Runnable {
 	private ComponentBean readComponentBean(File basePath,
 			File remoteFile) {
 		ComponentBean cfg = new ComponentBean();
-		cfg.setName(remoteFile.getName());
 
 		try {
 			logging.logDebug("Read component bean from '" + remoteFile.toPath() + "'");
