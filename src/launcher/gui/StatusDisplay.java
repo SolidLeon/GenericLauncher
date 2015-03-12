@@ -280,7 +280,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			if ("FILE".equals(mode)) {
 				components = runFile(launcherRestartController);
 			} else if ("XML".equals(mode)) {
-				components = runXML();
+				components = runXML(launcherRestartController);
 			}
 	
 			if (components != null && !components.isEmpty()) {
@@ -306,7 +306,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	}
 	
 
-	private List<ComponentBean> runXML() {
+	private List<ComponentBean> runXML(LauncherRestartController launcherRestartController) {
 		logging.log(LogLevel.INFO, "XML mode");
 		List<ComponentBean> components = null;
 		if (xmlFileChooser == null) {
@@ -388,8 +388,10 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 						}
 					}
 					// If we added some components do not add components from depending packages (just update this package)
-					if (!components.isEmpty())
+					if (!components.isEmpty()) {
+						launcherRestartController.setActivePackageBean(pkgBean);
 						break;
+					}
 				}
 			}
 		}
