@@ -283,18 +283,22 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 				components = runXML();
 			}
 	
-			PreviewDialog previewDialog = new PreviewDialog(this, components);
-			previewDialog.setVisible(true);
+			if (components != null && !components.isEmpty()) {
+				PreviewDialog previewDialog = new PreviewDialog(this, components);
+				previewDialog.setVisible(true);
+				
+				PreviewResult previewResult = previewDialog.getPreviewResult();
+				if (previewResult == PreviewResult.OK) {
+					DownloaderController downloader = new DownloaderController(logging, components);
+					downloader.run();
 			
-			PreviewResult previewResult = previewDialog.getPreviewResult();
-			if (previewResult == PreviewResult.OK) {
-				DownloaderController downloader = new DownloaderController(logging, components);
-				downloader.run();
-		
-				// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-				launcherRestartController.run();
+					// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+					launcherRestartController.run();
+				} else {
+					logging.log(LogLevel.INFO, "User cancelled preview");
+				}
 			} else {
-				logging.log(LogLevel.INFO, "User cancelled preview");
+				logging.log(LogLevel.INFO, "No components to be updated");
 			}
 		}
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
