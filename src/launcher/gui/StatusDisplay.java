@@ -68,6 +68,8 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	private Runnable exitRunner;
 	private Logging logging;
 	
+	private String lastModeSelection = "XML";
+	
 	public StatusDisplay() {
 		setPreferredSize(new Dimension(800, 600));
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -262,8 +264,9 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private void run() {
 		
-		String mode = (String) JOptionPane.showInputDialog(this, "Select mode", "Mode", JOptionPane.QUESTION_MESSAGE, null, new Object[] { "FILE", "XML" }, "FILE");
+		String mode = (String) JOptionPane.showInputDialog(this, "Select mode", "Mode", JOptionPane.QUESTION_MESSAGE, null, new Object[] { "FILE", "XML" }, lastModeSelection);
 		if (mode != null) {
+			lastModeSelection = mode;
 			List<ComponentBean> components = null;
 			
 			closeButton.setEnabled(false);
