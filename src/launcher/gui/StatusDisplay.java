@@ -332,8 +332,19 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			Object sel = JOptionPane.showInputDialog(this, "Select a package", "Launch Package Selection", JOptionPane.QUESTION_MESSAGE, null, cfg.packages.toArray(), cfg.packages.get(0));
 			if (sel != null) {
 				logging.log(LogLevel.INFO, "User selected '" + sel.toString() + "'");
+				
+				// First sort the packages by their dependencies 
+				// [0] -> top 
+				// [1] -> depends on [0]
+				List<XmlPackageBean> sorted = new ArrayList<>();
 				XmlPackageBean pkg = (XmlPackageBean) sel;
 				while (pkg != null) {
+					sorted.add(0, pkg);
+					pkg = pkg.depends;
+				}
+				
+				for (int i = 0; i < sorted.size(); i++) {
+					pkg = sorted.get(i);
 					logging.log(LogLevel.INFO, "Add package '" + pkg.name + "'");
 					PackageBean pkgBean = new PackageBean();
 					pkgBean.setBasePath(pkg.basePath != null ? pkg.basePath : cfg.basePath);
@@ -366,8 +377,9 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 							}
 						}
 					}
-					logging.log(LogLevel.INFO, "Add depending package '" + pkg.depends + "'");
-					pkg = pkg.depends;
+					// If we added some components do not add components from depending packages (just update this package)
+					if (!components.isEmpty())
+						break;
 				}
 			}
 		}
