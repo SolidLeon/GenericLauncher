@@ -22,6 +22,7 @@ public class LauncherRestartController implements Runnable {
 	}
 
 	public void setActivePackageBean(PackageBean activePackageBean) {
+		logging.log(LogLevel.DEBUG, "Set active package bean for post command to '" + activePackageBean.getName() + "'");
 		this.activePackageBean = activePackageBean;
 	}
 	

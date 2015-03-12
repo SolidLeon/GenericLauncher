@@ -292,15 +292,17 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					DownloaderController downloader = new DownloaderController(logging, components);
 					downloader.run();
 			
-					// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-					launcherRestartController.run();
 				} else {
 					logging.log(LogLevel.INFO, "User cancelled preview");
 				}
 			} else {
 				logging.log(LogLevel.INFO, "No components to be updated");
 			}
+			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+			launcherRestartController.run();
 		}
+		
+		
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
 	}
@@ -358,6 +360,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					pkg = sorted.get(i);
 					logging.log(LogLevel.INFO, "Add package '" + pkg.name + "'");
 					PackageBean pkgBean = new PackageBean();
+					pkgBean.setName(pkg.name);
 					pkgBean.setBasePath(pkg.basePath != null ? pkg.basePath : cfg.basePath);
 					pkgBean.setPostCommand(pkg.postCommand);
 					pkgBean.setPostCWD(pkg.postCwd == null ? null : new File(pkg.postCwd));
@@ -389,9 +392,12 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 							}
 						}
 					}
+					// Set the package bean for post command
+					// by setting it in every iteration, the last iteration defines the command to be executed.
+					launcherRestartController.setActivePackageBean(pkgBean);
+					
 					// If we added some components do not add components from depending packages (just update this package)
 					if (!components.isEmpty()) {
-						launcherRestartController.setActivePackageBean(pkgBean);
 						break;
 					}
 				}
