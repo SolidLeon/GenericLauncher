@@ -265,42 +265,34 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private void run() {
 		
-		String mode = (String) JOptionPane.showInputDialog(this, "Select mode", "Mode", JOptionPane.QUESTION_MESSAGE, null, new Object[] { "FILE", "XML" }, lastModeSelection);
-		if (mode != null) {
-			lastModeSelection = mode;
-			List<ComponentBean> components = null;
+		List<ComponentBean> components = null;
+		
+		closeButton.setEnabled(false);
+		
+		logging.getStatusListener().setOverallProgress(0, 0, 4);
+		
+		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
+		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
+
+		components = runXML(launcherRestartController);
+
+		if (components != null && !components.isEmpty()) {
+			PreviewDialog previewDialog = new PreviewDialog(this, components);
+			previewDialog.setVisible(true);
 			
-			closeButton.setEnabled(false);
-			
-			logging.getStatusListener().setOverallProgress(0, 0, 4);
-			
-			logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
-			LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
-	
-			if ("FILE".equals(mode)) {
-				components = runFile(launcherRestartController);
-			} else if ("XML".equals(mode)) {
-				components = runXML(launcherRestartController);
-			}
-	
-			if (components != null && !components.isEmpty()) {
-				PreviewDialog previewDialog = new PreviewDialog(this, components);
-				previewDialog.setVisible(true);
-				
-				PreviewResult previewResult = previewDialog.getPreviewResult();
-				if (previewResult == PreviewResult.OK) {
-					DownloaderController downloader = new DownloaderController(logging, components);
-					downloader.run();
-			
-				} else {
-					logging.log(LogLevel.INFO, "User cancelled preview");
-				}
+			PreviewResult previewResult = previewDialog.getPreviewResult();
+			if (previewResult == PreviewResult.OK) {
+				DownloaderController downloader = new DownloaderController(logging, components);
+				downloader.run();
+		
 			} else {
-				logging.log(LogLevel.INFO, "No components to be updated");
+				logging.log(LogLevel.INFO, "User cancelled preview");
 			}
-			// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-			launcherRestartController.run();
+		} else {
+			logging.log(LogLevel.INFO, "No components to be updated");
 		}
+		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+		launcherRestartController.run();
 		
 		
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
@@ -309,7 +301,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 
 	private List<ComponentBean> runXML(LauncherRestartController launcherRestartController) {
-		logging.log(LogLevel.INFO, "XML mode");
 		List<ComponentBean> components = null;
 		if (xmlFileChooser == null) {
 			xmlFileChooser = new JFileChooser(System.getProperty("user.dir"));
@@ -404,21 +395,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			}
 		}
 		return components;
-	}
-
-	private List<ComponentBean> runFile(LauncherRestartController launcherRestartController) {
-		logging.log(LogLevel.INFO, "File mode");
-		ServerListController serverListController = new ServerListController(logging);
-		serverListController.run();
-
-		PackageController packageController = new PackageController(logging, serverListController.getSelected());
-		packageController.run();
-		launcherRestartController.setActivePackageBean(packageController.getSelectedPackageBean());
-
-		ComponentController componentController = new ComponentController(logging, packageController.getSelectedPackageBean());
-		componentController.run();
-		
-		return componentController.getResultComponentList();
 	}
 
 	private void logBasicInfo() {
