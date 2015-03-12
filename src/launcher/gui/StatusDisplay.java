@@ -69,6 +69,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	private Logging logging;
 	
 	private String lastModeSelection = "XML";
+	private JFileChooser xmlFileChooser;
 	
 	public StatusDisplay() {
 		setPreferredSize(new Dimension(800, 600));
@@ -304,14 +305,16 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	private List<ComponentBean> runXML() {
 		logging.log(LogLevel.INFO, "XML mode");
 		List<ComponentBean> components = null;
-		JFileChooser jfc = new JFileChooser();
-		jfc.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
-		jfc.setMultiSelectionEnabled(false);
-		int rc = jfc.showOpenDialog(this);
+		if (xmlFileChooser == null) {
+			xmlFileChooser = new JFileChooser();
+			xmlFileChooser.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
+			xmlFileChooser.setMultiSelectionEnabled(false);
+		}
+		int rc = xmlFileChooser.showOpenDialog(this);
 		if (rc == JFileChooser.APPROVE_OPTION) {
 			components = new ArrayList<>();
-			logging.log(LogLevel.INFO, "Read XML file '" + jfc.getSelectedFile().getAbsolutePath() + "' ...");
-			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(jfc.getSelectedFile(), XmlLauncherConfigBean.class);
+			logging.log(LogLevel.INFO, "Read XML file '" + xmlFileChooser.getSelectedFile().getAbsolutePath() + "' ...");
+			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(xmlFileChooser.getSelectedFile(), XmlLauncherConfigBean.class);
 			logging.log(LogLevel.INFO, "  Done!");
 			
 			logging.log(LogLevel.CONFIG,     "BASE_PATH     " + "'" + (cfg.basePath == null ? "Inherit" : cfg.basePath.getAbsolutePath()) + "'");
