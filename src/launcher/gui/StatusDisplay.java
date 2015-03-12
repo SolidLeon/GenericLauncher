@@ -335,6 +335,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					logging.log(LogLevel.CONFIG, "SOURCE        " + "'" + cm.source + "'");
 					logging.log(LogLevel.CONFIG, "TARGET        " + "'" + cm.target + "'");
 					logging.log(LogLevel.CONFIG, "COMPARE       " + "'" + cm.compare + "'");
+					logging.log(LogLevel.CONFIG, "REQUIRED      " + "'" + cm.required + "'");
 				}
 			}
 			
@@ -370,6 +371,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 						comp.setCompare(com.compare == null ? null : new File(com.compare));
 						comp.setSource(sourceFile);
 						comp.setTarget(targetFile);
+						comp.setRequired(com.required);
 						
 						if (comp.getCompare() != null) {
 							if (comp.getSource().lastModified() > comp.getCompare().lastModified()) {

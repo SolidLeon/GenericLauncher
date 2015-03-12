@@ -15,5 +15,7 @@ public class XmlComponentBean {
 	@XmlAttribute(name="compare", required=false)
 	public String compare;
 
-	
+	@XmlAttribute(name="required", required=false)
+	public boolean required = true;
+
 }

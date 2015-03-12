@@ -62,10 +62,11 @@ public class ComponentController implements Runnable {
 				addComponentBeansRecursivly(remoteConfigs, componentBean.getSource(),componentBean.getTarget(), componentBean.getSource());
 			} else {
 				remoteConfigs.add(componentBean);
-				logging.log(LogLevel.INFO, "COMPONENT  '" + componentBean.getName() + "'");
-				logging.log(LogLevel.CONFIG, "  SOURCE=  '" + componentBean.getSource().getAbsolutePath() + "'");
-				logging.log(LogLevel.CONFIG, "  TARGET=  '" + componentBean.getTarget().getAbsolutePath() + "'");
-				logging.log(LogLevel.CONFIG, "  COMPARE= '" + (componentBean.getCompare() == null ? "None" : componentBean.getCompare().getAbsolutePath()) + "'");
+				logging.log(LogLevel.INFO,   "COMPONENT   '" + componentBean.getName() + "'");
+				logging.log(LogLevel.CONFIG, "  SOURCE=   '" + componentBean.getSource().getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  TARGET=   '" + componentBean.getTarget().getAbsolutePath() + "'");
+				logging.log(LogLevel.CONFIG, "  COMPARE=  '" + (componentBean.getCompare() == null ? "None" : componentBean.getCompare().getAbsolutePath()) + "'");
+				logging.log(LogLevel.CONFIG, "  REQUIRED= '" + (componentBean.isRequired()));
 			}
 		}
 		logging.getStatusListener().setCurrentProgressToMax();
@@ -80,10 +81,11 @@ public class ComponentController implements Runnable {
 			ComponentBean cfg = new ComponentBean();
 			cfg.setSource(source);
 			cfg.setTarget(new File(target, source.getAbsolutePath().substring(basePath.getAbsolutePath().length())));
-			logging.log(LogLevel.INFO, "COMPONENT  '" + cfg.getName() + "'");
-			logging.log(LogLevel.CONFIG, "  SOURCE=  '" + cfg.getSource().getAbsolutePath()+ "'");
-			logging.log(LogLevel.CONFIG, "  TARGET=  '" + cfg.getTarget().getAbsolutePath()+ "'");
-			logging.log(LogLevel.CONFIG, "  COMPARE= '"+ (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
+			logging.log(LogLevel.INFO,   "COMPONENT   '" + cfg.getName() + "'");
+			logging.log(LogLevel.CONFIG, "  SOURCE=   '" + cfg.getSource().getAbsolutePath()+ "'");
+			logging.log(LogLevel.CONFIG, "  TARGET=   '" + cfg.getTarget().getAbsolutePath()+ "'");
+			logging.log(LogLevel.CONFIG, "  COMPARE=  '"+ (cfg.getCompare() == null ? "None" : cfg.getCompare().getAbsolutePath()) + "'");
+			logging.log(LogLevel.CONFIG, "  REQUIRED= '"+ (cfg.isRequired()));
 			remoteConfigs.add(cfg);
 		} else {
 			for (File ff : source.listFiles())
@@ -123,6 +125,15 @@ public class ComponentController implements Runnable {
 					String sCompare = line.substring("COMPARE=".length());
 					File compareFile = new File(sCompare);
 					cfg.setCompare(compareFile);
+				} else if (line.startsWith("REQUIRED=")) {
+					String sRequired = line.substring("REQUIRED=".length());
+					boolean required = true;
+					try {
+						required = Boolean.parseBoolean(sRequired);
+					} catch (Exception ex) {
+						required = true;
+					}
+					cfg.setRequired(required);
 				}
 			}
 

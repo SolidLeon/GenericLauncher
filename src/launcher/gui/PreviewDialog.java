@@ -13,12 +13,14 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import sun.util.logging.resources.logging_fr;
 import launcher.beans.ComponentBean;
 
 public class PreviewDialog extends JDialog {
@@ -60,6 +62,12 @@ public class PreviewDialog extends JDialog {
 
 		okButton.addActionListener(evt -> {
 			previewResult = PreviewResult.OK;
+			
+			for (int i = 0; i < componentBeans.size(); i++) {
+				ComponentBean componentBean = componentBeans.get(i);
+				if (!componentBean.isDownload()) componentBeans.remove(i--);
+			}
+			
 			setVisible(false);
 		});
 		cancelButton.addActionListener(evt -> {
@@ -99,15 +107,25 @@ public class PreviewDialog extends JDialog {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
+
+			// column 0 is "download" so it should be only editable if the
+			// required flag for the component at "row" is false
+			if (column == 0) {
+				ComponentBean component = componentBeans.get(row);
+				return !component.isRequired();
+			}
+			
 			return false;
 		}
 		
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
 			switch (columnIndex) {
-			case 0:
+			case 0: 
+				return Boolean.class;
 			case 1:
-			case 2: 
+			case 2:
+			case 3: 
 				return File.class;
 			default:
 				return null;
@@ -117,9 +135,10 @@ public class PreviewDialog extends JDialog {
 		@Override
 		public String getColumnName(int column) {
 			switch (column) {
-			case 0: return "Source";
-			case 1: return "Target";
-			case 2: return "Compare";
+			case 0: return "Download";
+			case 1: return "Source";
+			case 2: return "Target";
+			case 3: return "Compare";
 			default:
 				return null;
 			}
@@ -127,7 +146,7 @@ public class PreviewDialog extends JDialog {
 		
 		@Override
 		public int getColumnCount() {
-			return 3;
+			return 4;
 		}
 		
 		@Override
@@ -140,13 +159,28 @@ public class PreviewDialog extends JDialog {
 			ComponentBean bean = componentBeans.get(row);
 			switch (column) {
 			case 0:
-				return bean.getSource();
+				return bean.isDownload();
 			case 1:
-				return bean.getTarget();
+				return bean.getSource();
 			case 2:
+				return bean.getTarget();
+			case 3:
 				return bean.getCompare() == null ? "" : bean.getCompare();
 			default:
 				return null;
+			}
+		}
+		
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			// "Download" column
+			if (column == 0) {
+				boolean newValue = (boolean) aValue;
+				ComponentBean componentBean = componentBeans.get(row);
+				componentBean.setDownload(newValue);
+				fireTableRowsUpdated(row, row);
+			} else {
+				super.setValueAt(aValue, row, column);
 			}
 		}
 	}

@@ -12,7 +12,26 @@ public class ComponentBean {
 	private File source;
 	private File target;
 	private File compare;
+	private boolean required = true;
+	private boolean download = true;
+	
+	public boolean isDownload() {
+		return download;
+	}
 
+	public void setDownload(boolean download) {
+		if (!required)
+			this.download = download;
+	}
+
+	public boolean isRequired() {
+		return required;
+	}
+	
+	public void setRequired(boolean required) {
+		this.required = required;
+	}
+	
 	public File getCompare() {
 		return compare;
 	}
