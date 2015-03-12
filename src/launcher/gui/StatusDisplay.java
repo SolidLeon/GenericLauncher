@@ -306,7 +306,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		logging.log(LogLevel.INFO, "XML mode");
 		List<ComponentBean> components = null;
 		if (xmlFileChooser == null) {
-			xmlFileChooser = new JFileChooser();
+			xmlFileChooser = new JFileChooser(System.getProperty("user.dir"));
 			xmlFileChooser.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
 			xmlFileChooser.setMultiSelectionEnabled(false);
 		}
