@@ -124,8 +124,14 @@ public class PreviewDialog extends JDialog {
 			case 0: 
 				return Boolean.class;
 			case 1:
-			case 2:
-			case 3: 
+				return File.class;
+			case 2: 
+				return String.class;
+			case 3:
+				return File.class;
+			case 4:
+				return String.class;
+			case 5: 
 				return File.class;
 			default:
 				return null;
@@ -137,8 +143,10 @@ public class PreviewDialog extends JDialog {
 			switch (column) {
 			case 0: return "Download";
 			case 1: return "Source";
-			case 2: return "Target";
-			case 3: return "Compare";
+			case 2: return "Version";
+			case 3: return "Target";
+			case 4: return "Version";
+			case 5: return "Compare";
 			default:
 				return null;
 			}
@@ -146,7 +154,7 @@ public class PreviewDialog extends JDialog {
 		
 		@Override
 		public int getColumnCount() {
-			return 4;
+			return 6;
 		}
 		
 		@Override
@@ -162,9 +170,13 @@ public class PreviewDialog extends JDialog {
 				return bean.isDownload();
 			case 1:
 				return bean.getSource();
-			case 2:
-				return bean.getTarget();
+			case 2: 
+				return bean.getSource().lastModified();
 			case 3:
+				return bean.getTarget();
+			case 4:
+				return bean.getTarget().lastModified();
+			case 5:
 				return bean.getCompare() == null ? "" : bean.getCompare();
 			default:
 				return null;

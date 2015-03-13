@@ -1,6 +1,7 @@
 package launcher.beans.xml;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -29,7 +30,7 @@ public class XmlPackageBean {
 	public File basePath;
 
 	@XmlElement(name="component")
-	public List<XmlComponentBean> components;
+	public List<XmlComponentBean> components = new ArrayList<>();
 	
 	@Override
 	public String toString() {
