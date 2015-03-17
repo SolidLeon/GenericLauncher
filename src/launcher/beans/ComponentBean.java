@@ -14,6 +14,15 @@ public class ComponentBean {
 	private File compare;
 	private boolean required = true;
 	private boolean download = true;
+	private String version;
+	
+	public String getVersion() {
+		return version;
+	}
+	
+	public void setVersion(String version) {
+		this.version = version;
+	}
 	
 	public boolean isDownload() {
 		return download;

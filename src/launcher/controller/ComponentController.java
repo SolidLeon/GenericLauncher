@@ -134,6 +134,9 @@ public class ComponentController implements Runnable {
 						required = true;
 					}
 					cfg.setRequired(required);
+				} else if (line.startsWith("VERSION=")) {
+					String sVersion = line.substring("VERSION=".length());
+					cfg.setVersion(sVersion);
 				}
 			}
 

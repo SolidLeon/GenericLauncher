@@ -36,5 +36,19 @@ public class XmlPackageBean {
 	public String toString() {
 		return name;
 	}
+
+	public XmlComponentBean getComponent(XmlComponentBean other) {
+		
+		if (other != null && other.source != null && other.target != null)
+			for (XmlComponentBean component : components)
+				if (component != null &&
+					component.source != null &&
+					component.target != null && 
+					component.source.equals(other.source) && component.target.equals(other.target))
+					return component;
+			
+		
+		return null;
+	}
 	
 }
