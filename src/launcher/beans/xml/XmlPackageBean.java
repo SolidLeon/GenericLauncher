@@ -34,6 +34,9 @@ public class XmlPackageBean {
 	
 	@XmlAttribute(name="version", required=false)
 	public String version;
+
+	@XmlAttribute(name="restart", required=false)
+	public boolean requiresRestart = false;
 	
 	@Override
 	public String toString() {

@@ -53,8 +53,6 @@ public class UpdateController implements Runnable {
 	
 	@Override
 	public void run() {
-		List<UpdateBean> toDownload = new ArrayList<>();
-		
 		// 1) Download remote package declaration
 		XmlLauncherConfigBean remoteConfigBean = downloadRemotePackage(remotePath);
 		XmlLauncherConfigBean localConfigBean = downloadRemotePackage(localPath);
@@ -72,104 +70,136 @@ public class UpdateController implements Runnable {
 				logging.log(LogLevel.INFO, "Remote package selected: '" + remotePackage.name + "'");
 				logging.log(LogLevel.INFO, "  " + remotePackage.components.size() + " component(s)");
 				
-				// 3) Check if we have a local package declaration with the same name. Yes? -> 4; No? -> 5
-				XmlPackageBean localPackage = localConfigBean.getPackageByName(remotePackage.name);
-				if (localPackage == null) {
-					localPackage = new XmlPackageBean();
-					localPackage.basePath = remotePackage.basePath;
-					localPackage.name = remotePackage.name;
-					localPackage.depends = remotePackage.depends;
-					localPackage.postCommand = remotePackage.postCommand;
-					localPackage.postCwd = remotePackage.postCwd;
-					localPackage.components = new ArrayList<>();
-					localPackage.components.addAll(remotePackage.components);
-					localConfigBean.packages.add(localPackage);
-					
-					logging.log(LogLevel.INFO, "No local package, download all components");
-					for (XmlComponentBean remoteComponent : remotePackage.components) {
-						UpdateBean bean = new UpdateBean();
-						bean.remote = remoteComponent;
-						bean.local = new XmlComponentBean(remoteComponent);
-						bean.local.version = null;
-						bean.download = true;
-						toDownload.add(bean);
-					}
-				} else {
-					
-					// 4) Compare 
-					boolean packageOutdated = remotePackage.compare(localPackage) > 0;
-					if (packageOutdated) {
-						logging.log(LogLevel.INFO, "Package outdated ...");
-						localPackage.version = remotePackage.version; //Update version so the new version gets written to local configuration
-						localPackage.basePath = remotePackage.basePath;
-						localPackage.depends = remotePackage.depends;
-						localPackage.name = remotePackage.name;
-						localPackage.postCommand = remotePackage.postCommand;
-						localPackage.postCwd = remotePackage.postCwd;
-						logging.log(LogLevel.FINE, "Local package information updated!");
-					}
-					logging.log(LogLevel.INFO, "Compare remote <-> local ...");
-					for (XmlComponentBean remoteComponentBean : remotePackage.components) {
-						XmlComponentBean localComponentBean = localPackage.getComponent(remoteComponentBean);					
-						if (localComponentBean == null) {
-							logging.log(LogLevel.INFO, "No local component for '" + remoteComponentBean.source + "'");
-							UpdateBean bean = new UpdateBean();
-							bean.remote = remoteComponentBean;
-							bean.local = new XmlComponentBean(remoteComponentBean);
-							bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
-							bean.download = true;
-							toDownload.add(bean);
-							localPackage.components.add(remoteComponentBean);
-						} else {
-							logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
-							if (remoteComponentBean.compare(localComponentBean) > 0 || packageOutdated) {
-								System.out.println("  Component added to download queue");
-								UpdateBean bean = new UpdateBean();
-								bean.local = localComponentBean;
-								bean.remote = remoteComponentBean;
-								toDownload.add(bean);
-							} else {
-								// Check if the physical file is available, if not download it no matter what version!
-								File localFile = new File(remoteComponentBean.target);
-								if (!localFile.exists()) {
-									UpdateBean bean = new UpdateBean();
-									bean.local = new XmlComponentBean(remoteComponentBean);
-									bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
-									bean.remote = remoteComponentBean;
-									toDownload.add(bean);
-								}
-							}
-						}
-					}
-					
+				// Process dependencies first 
+				// A dependency can require an restart so stop if that happens and restart!
+				
+				List<XmlPackageBean> updateQueue = new ArrayList<>();
+				XmlPackageBean updatePackage = remotePackage;
+				while (updatePackage != null) {
+					updateQueue.add(0, updatePackage);
+					updatePackage = updatePackage.depends;
 				}
-			}
-			if (preDownload(toDownload)) {
-				// 5) Download
-				for (UpdateBean bean : toDownload) {
-					if (bean.download) {
-						XmlComponentBean dl = bean.remote;
-						logging.log(LogLevel.INFO,"Download ...");
-						logging.log(LogLevel.INFO, String.format("SOURCE   = '%s'", dl.source));
-						logging.log(LogLevel.INFO, String.format("TARGET   = '%s'", dl.target));
-						logging.log(LogLevel.INFO, String.format("COMPARE  = '%s'", dl.compare));
-						logging.log(LogLevel.INFO, String.format("REQUIRED = '%s'", dl.required));
-						logging.log(LogLevel.INFO, String.format("VERSION  = '%s'", dl.version));
-						if (download(dl.source, dl.target)) {
-							bean.local.version = bean.remote.version;
-						}
+				
+				for (int i = 0; i < updateQueue.size(); i++) {
+					XmlPackageBean packageUpdate = updateQueue.get(i); 
+					if (updatePackage(localConfigBean, packageUpdate) && packageUpdate.requiresRestart) {
+						logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
+						break;
 					}
-				}
-				File saveFile = new File(localPath);
-				System.out.println("Save package to '" + saveFile.getAbsolutePath() + "'");
-				try {
-					JAXB.marshal(localConfigBean, saveFile);
-				} catch (Exception ex) {
-					System.out.println("Can not write XML");
-					ex.printStackTrace();
 				}
 			}
 		}
+	}
+
+	/**
+	 * 
+	 * @param localConfigBean
+	 * @param remotePackage
+	 * @return true -> something was updated, false -> no updates
+	 */
+	private boolean updatePackage(XmlLauncherConfigBean localConfigBean, XmlPackageBean remotePackage) {
+		logging.log(LogLevel.INFO, "Update package '" + remotePackage.name + "' ...");
+		boolean updated = false;
+		List<UpdateBean> toDownload = new ArrayList<>();
+		// 3) Check if we have a local package declaration with the same name. Yes? -> 4; No? -> 5
+		XmlPackageBean localPackage = localConfigBean.getPackageByName(remotePackage.name);
+		if (localPackage == null) {
+			localPackage = new XmlPackageBean();
+			localPackage.basePath = remotePackage.basePath;
+			localPackage.name = remotePackage.name;
+			localPackage.depends = remotePackage.depends;
+			localPackage.postCommand = remotePackage.postCommand;
+			localPackage.postCwd = remotePackage.postCwd;
+			localPackage.components = new ArrayList<>();
+			localPackage.components.addAll(remotePackage.components);
+			localConfigBean.packages.add(localPackage);
+			
+			logging.log(LogLevel.INFO, "No local package, download all components");
+			for (XmlComponentBean remoteComponent : remotePackage.components) {
+				UpdateBean bean = new UpdateBean();
+				bean.remote = remoteComponent;
+				bean.local = new XmlComponentBean(remoteComponent);
+				bean.local.version = null;
+				bean.download = true;
+				toDownload.add(bean);
+			}
+		} else {
+			
+			// 4) Compare 
+			boolean packageOutdated = remotePackage.compare(localPackage) > 0;
+			if (packageOutdated) {
+				logging.log(LogLevel.INFO, "Package outdated ...");
+				localPackage.version = remotePackage.version; //Update version so the new version gets written to local configuration
+				localPackage.basePath = remotePackage.basePath;
+				localPackage.depends = remotePackage.depends;
+				localPackage.name = remotePackage.name;
+				localPackage.postCommand = remotePackage.postCommand;
+				localPackage.postCwd = remotePackage.postCwd;
+				logging.log(LogLevel.FINE, "Local package information updated!");
+			}
+			logging.log(LogLevel.INFO, "Compare remote <-> local ...");
+			for (XmlComponentBean remoteComponentBean : remotePackage.components) {
+				XmlComponentBean localComponentBean = localPackage.getComponent(remoteComponentBean);					
+				if (localComponentBean == null) {
+					logging.log(LogLevel.INFO, "No local component for '" + remoteComponentBean.source + "'");
+					UpdateBean bean = new UpdateBean();
+					bean.remote = remoteComponentBean;
+					bean.local = new XmlComponentBean(remoteComponentBean);
+					bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
+					bean.download = true;
+					toDownload.add(bean);
+					localPackage.components.add(remoteComponentBean);
+				} else {
+					logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
+					if (remoteComponentBean.compare(localComponentBean) > 0 || packageOutdated) {
+						System.out.println("  Component added to download queue");
+						UpdateBean bean = new UpdateBean();
+						bean.local = localComponentBean;
+						bean.remote = remoteComponentBean;
+						toDownload.add(bean);
+					} else {
+						// Check if the physical file is available, if not download it no matter what version!
+						File localFile = new File(remoteComponentBean.target);
+						if (!localFile.exists()) {
+							UpdateBean bean = new UpdateBean();
+							bean.local = new XmlComponentBean(remoteComponentBean);
+							bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
+							bean.remote = remoteComponentBean;
+							toDownload.add(bean);
+						}
+					}
+				}
+			}
+			
+		}
+
+		if (preDownload(toDownload)) {
+			// 5) Download
+			for (UpdateBean bean : toDownload) {
+				if (bean.download) {
+					XmlComponentBean dl = bean.remote;
+					logging.log(LogLevel.INFO,"Download ...");
+					logging.log(LogLevel.INFO, String.format("SOURCE   = '%s'", dl.source));
+					logging.log(LogLevel.INFO, String.format("TARGET   = '%s'", dl.target));
+					logging.log(LogLevel.INFO, String.format("COMPARE  = '%s'", dl.compare));
+					logging.log(LogLevel.INFO, String.format("REQUIRED = '%s'", dl.required));
+					logging.log(LogLevel.INFO, String.format("VERSION  = '%s'", dl.version));
+					if (download(dl.source, dl.target)) {
+						bean.local.version = bean.remote.version;
+						updated = true;
+					}
+				}
+			}
+			File saveFile = new File(localPath);
+			System.out.println("Save package to '" + saveFile.getAbsolutePath() + "'");
+			try {
+				JAXB.marshal(localConfigBean, saveFile);
+			} catch (Exception ex) {
+				System.out.println("Can not write XML");
+				ex.printStackTrace();
+			}
+		}
+		return updated;
 	}
 
 	private boolean download(String source, String target) {
