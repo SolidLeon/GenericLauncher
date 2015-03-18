@@ -43,14 +43,14 @@ public class XmlComponentBean {
 		int otherMinor = 0;
 		int otherMajor = 0;
 		try {
-			otherMinor = Integer.parseInt(otherVersion[0]);
-			otherMajor = Integer.parseInt(otherVersion[1]);
+			otherMajor = Integer.parseInt(otherVersion[0]);
+			otherMinor = Integer.parseInt(otherVersion[1]);
 		} catch (Exception ex) {
 			return 1;// Invalid other.version
 		}
 		try {
-			localMinor = Integer.parseInt(localVersion[0]);
-			localMajor = Integer.parseInt(localVersion[1]);
+			localMajor = Integer.parseInt(localVersion[0]);
+			localMinor = Integer.parseInt(localVersion[1]);
 		} catch (Exception ex) {
 			return -1;// Invalid this.version
 		}
