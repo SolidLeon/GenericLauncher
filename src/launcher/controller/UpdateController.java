@@ -97,6 +97,11 @@ public class UpdateController implements Runnable {
 				} else {
 					
 					// 4) Compare 
+					boolean packageOutdated = remotePackage.compare(localPackage) > 0;
+					if (packageOutdated) {
+						logging.log(LogLevel.INFO, "Package outdated ...");
+						localPackage.version = remotePackage.version; //Update version so the new version gets written to local configuration
+					}
 					logging.log(LogLevel.INFO, "Compare remote <-> local ...");
 					for (XmlComponentBean remoteComponentBean : remotePackage.components) {
 						XmlComponentBean localComponentBean = localPackage.getComponent(remoteComponentBean);					
@@ -105,13 +110,13 @@ public class UpdateController implements Runnable {
 							UpdateBean bean = new UpdateBean();
 							bean.remote = remoteComponentBean;
 							bean.local = new XmlComponentBean(remoteComponentBean);
-							bean.local.version = null;
+							bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
 							bean.download = true;
 							toDownload.add(bean);
 							localPackage.components.add(remoteComponentBean);
 						} else {
 							logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
-							if (remoteComponentBean.compare(localComponentBean) > 0) {
+							if (remoteComponentBean.compare(localComponentBean) > 0 || packageOutdated) {
 								System.out.println("  Component added to download queue");
 								UpdateBean bean = new UpdateBean();
 								bean.local = localComponentBean;
@@ -123,7 +128,7 @@ public class UpdateController implements Runnable {
 								if (!localFile.exists()) {
 									UpdateBean bean = new UpdateBean();
 									bean.local = new XmlComponentBean(remoteComponentBean);
-									bean.local.version = null;
+									bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)
 									bean.remote = remoteComponentBean;
 									toDownload.add(bean);
 								}
@@ -135,7 +140,6 @@ public class UpdateController implements Runnable {
 			}
 			if (preDownload(toDownload)) {
 				// 5) Download
-				logging.log(LogLevel.INFO,"Download");
 				for (UpdateBean bean : toDownload) {
 					if (bean.download) {
 						XmlComponentBean dl = bean.remote;
