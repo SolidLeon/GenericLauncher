@@ -5,14 +5,19 @@ An self-updating launcher.
 ## Configuration
 
 Server List:
-        The server list which is always the "serverlist.svl" file located in the launcher directory,
-        contains all servers that can be selected.
-        Content:
+The server list which is always the "serverlist.svl" file located in the launcher directory,
+contains all servers that can be selected.
+Content:
+        
         SERVER_NAME=PATH
-        Example:
+        
+Example:
+        
+        
         MAIN=http://update.my-server.com/my-package.xml
         LOCAL=C:\update\local-package.xml
-
+        
+        
 Configuration is XML based.
 
         <!--    launcher: root node
