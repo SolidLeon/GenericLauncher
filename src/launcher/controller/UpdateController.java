@@ -19,6 +19,12 @@ import launcher.beans.xml.XmlPackageBean;
 
 public class UpdateController implements Runnable {
 	
+	enum UpdateResult {
+		OK,
+		NOTHING_UPDATED,
+		CANCELLED
+	}
+	
 	private Logging logging;
 	private IUpdateListener listener;
 	
@@ -72,7 +78,8 @@ public class UpdateController implements Runnable {
 				
 				// Process dependencies first 
 				// A dependency can require an restart so stop if that happens and restart!
-				
+
+				logging.log(LogLevel.INFO, "Collect dependencies ...");
 				List<XmlPackageBean> updateQueue = new ArrayList<>();
 				XmlPackageBean updatePackage = remotePackage;
 				while (updatePackage != null) {
@@ -82,9 +89,15 @@ public class UpdateController implements Runnable {
 				
 				for (int i = 0; i < updateQueue.size(); i++) {
 					XmlPackageBean packageUpdate = updateQueue.get(i); 
-					if (updatePackage(localConfigBean, packageUpdate) && packageUpdate.requiresRestart) {
+					UpdateResult ur = updatePackage(localConfigBean, packageUpdate);
+					if (ur == UpdateResult.OK && packageUpdate.requiresRestart) {
 						logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
 						break;
+					} else if (ur == UpdateResult.CANCELLED) {
+						logging.log(LogLevel.INFO, "Update cancelled!");
+						break;
+					} else if (ur == UpdateResult.NOTHING_UPDATED) {
+						logging.log(LogLevel.INFO, "Nothing updated!");
 					}
 				}
 			}
@@ -97,9 +110,10 @@ public class UpdateController implements Runnable {
 	 * @param remotePackage
 	 * @return true -> something was updated, false -> no updates
 	 */
-	private boolean updatePackage(XmlLauncherConfigBean localConfigBean, XmlPackageBean remotePackage) {
+	private UpdateResult updatePackage(XmlLauncherConfigBean localConfigBean, XmlPackageBean remotePackage) {
 		logging.log(LogLevel.INFO, "Update package '" + remotePackage.name + "' ...");
-		boolean updated = false;
+		logging.log(LogLevel.INFO, "  VERSION=" + remotePackage.version);
+		UpdateResult result = UpdateResult.NOTHING_UPDATED;
 		List<UpdateBean> toDownload = new ArrayList<>();
 		// 3) Check if we have a local package declaration with the same name. Yes? -> 4; No? -> 5
 		XmlPackageBean localPackage = localConfigBean.getPackageByName(remotePackage.name);
@@ -112,6 +126,7 @@ public class UpdateController implements Runnable {
 			localPackage.postCwd = remotePackage.postCwd;
 			localPackage.components = new ArrayList<>();
 			localPackage.components.addAll(remotePackage.components);
+			localPackage.version = null;
 			localConfigBean.packages.add(localPackage);
 			
 			logging.log(LogLevel.INFO, "No local package, download all components");
@@ -179,27 +194,30 @@ public class UpdateController implements Runnable {
 				if (bean.download) {
 					XmlComponentBean dl = bean.remote;
 					logging.log(LogLevel.INFO,"Download ...");
-					logging.log(LogLevel.INFO, String.format("SOURCE   = '%s'", dl.source));
-					logging.log(LogLevel.INFO, String.format("TARGET   = '%s'", dl.target));
-					logging.log(LogLevel.INFO, String.format("COMPARE  = '%s'", dl.compare));
-					logging.log(LogLevel.INFO, String.format("REQUIRED = '%s'", dl.required));
-					logging.log(LogLevel.INFO, String.format("VERSION  = '%s'", dl.version));
+					logging.log(LogLevel.INFO, String.format("  SOURCE   = '%s'", dl.source));
+					logging.log(LogLevel.INFO, String.format("  TARGET   = '%s'", dl.target));
+					logging.log(LogLevel.INFO, String.format("  COMPARE  = '%s'", dl.compare));
+					logging.log(LogLevel.INFO, String.format("  REQUIRED = '%s'", dl.required));
+					logging.log(LogLevel.INFO, String.format("  VERSION  = '%s'", dl.version));
 					if (download(dl.source, dl.target)) {
 						bean.local.version = bean.remote.version;
-						updated = true;
+						localPackage.version = remotePackage.version;
+						result = UpdateResult.OK;
 					}
 				}
 			}
 			File saveFile = new File(localPath);
-			System.out.println("Save package to '" + saveFile.getAbsolutePath() + "'");
+			System.out.println("Save package '" + remotePackage.name + "' to '" + saveFile.getAbsolutePath() + "'");
 			try {
 				JAXB.marshal(localConfigBean, saveFile);
 			} catch (Exception ex) {
 				System.out.println("Can not write XML");
 				ex.printStackTrace();
 			}
+		} else {
+			result = UpdateResult.CANCELLED;
 		}
-		return updated;
+		return result;
 	}
 
 	private boolean download(String source, String target) {

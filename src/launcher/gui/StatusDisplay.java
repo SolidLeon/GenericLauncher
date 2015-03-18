@@ -283,13 +283,12 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					
 					PreviewResult previewResult = previewDialog.getPreviewResult();
 					if (previewResult == PreviewResult.OK) {
-						// TODO: START DOWNLOAD
-						return true;
 					} else {
 						logging.log(LogLevel.INFO, "User cancelled preview");
+						return false;
 					}
 				}
-				return false;
+				return true;
 			}
 		};
 		
