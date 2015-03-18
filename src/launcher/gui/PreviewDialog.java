@@ -1,29 +1,20 @@
 package launcher.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import sun.util.logging.resources.logging_fr;
-import launcher.beans.ComponentBean;
 import launcher.beans.UpdateBean;
-import launcher.beans.xml.XmlComponentBean;
 
 public class PreviewDialog extends JDialog {
 

@@ -17,7 +17,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,7 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
@@ -37,11 +35,9 @@ import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
 import launcher.beans.UpdateBean;
-import launcher.beans.xml.XmlComponentBean;
 import launcher.beans.xml.XmlLauncherConfigBean;
 import launcher.beans.xml.XmlPackageBean;
 import launcher.controller.IUpdateListener;
-import launcher.controller.LauncherRestartController;
 import launcher.controller.UpdateController;
 import launcher.gui.PreviewDialog.PreviewResult;
 
