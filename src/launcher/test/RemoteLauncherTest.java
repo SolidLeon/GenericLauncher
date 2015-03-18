@@ -79,7 +79,6 @@ public class RemoteLauncherTest implements Runnable {
 		});
 		th.start();
 		
-		new Thread(new RemoteLauncherTest("C:\\Users\\mma\\git\\GenericLauncher\\web-package.xml")).start();
 	}
 
 	private static XmlLauncherConfigBean downloadRemotePackage(String remotePath) {
@@ -95,8 +94,6 @@ public class RemoteLauncherTest implements Runnable {
 
 	@Override
 	public void run() {
-
-		
 		// 1) Download remote package declaration
 		XmlLauncherConfigBean remoteConfigBean = downloadRemotePackage(remotePath);
 		XmlLauncherConfigBean localConfigBean = downloadRemotePackage(localPath);
@@ -177,7 +174,6 @@ public class RemoteLauncherTest implements Runnable {
 					System.err.println("Can not download '" + dl.source + "' to '" + dl.target + "'");
 				}
 			}
-			
 			File saveFile = new File(localPath);
 			System.out.println("Save package to '" + saveFile.getAbsolutePath() + "'");
 			try {
@@ -186,7 +182,6 @@ public class RemoteLauncherTest implements Runnable {
 				System.out.println("Can not write XML");
 				ex.printStackTrace();
 			}
-				
 		}
 	}
 	

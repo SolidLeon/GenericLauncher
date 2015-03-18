@@ -7,7 +7,6 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -23,28 +22,24 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
-import javax.xml.bind.JAXB;
 
 import launcher.Launcher;
 import launcher.Logging;
 import launcher.Logging.LogLevel;
-import launcher.beans.ComponentBean;
-import launcher.beans.PackageBean;
+import launcher.beans.UpdateBean;
 import launcher.beans.xml.XmlComponentBean;
 import launcher.beans.xml.XmlLauncherConfigBean;
 import launcher.beans.xml.XmlPackageBean;
-import launcher.controller.ComponentController;
-import launcher.controller.DownloaderController;
+import launcher.controller.IUpdateListener;
 import launcher.controller.LauncherRestartController;
-import launcher.controller.PackageController;
-import launcher.controller.ServerListController;
+import launcher.controller.UpdateController;
 import launcher.gui.PreviewDialog.PreviewResult;
 
 /**
@@ -265,8 +260,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private void run() {
 		
-		List<ComponentBean> components = null;
-		
 		closeButton.setEnabled(false);
 		
 		logging.getStatusListener().setOverallProgress(0, 0, 4);
@@ -274,129 +267,40 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
 		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
-		components = runXML(launcherRestartController);
-
-		if (components != null && !components.isEmpty()) {
-			PreviewDialog previewDialog = new PreviewDialog(this, components);
-			previewDialog.setVisible(true);
+		IUpdateListener listener = new IUpdateListener() {
 			
-			PreviewResult previewResult = previewDialog.getPreviewResult();
-			if (previewResult == PreviewResult.OK) {
-				DownloaderController downloader = new DownloaderController(logging, components);
-				downloader.run();
-		
-			} else {
-				logging.log(LogLevel.INFO, "User cancelled preview");
+			@Override
+			public XmlPackageBean selectPackage(XmlLauncherConfigBean remoteConfigBean) {
+				Object[] options = remoteConfigBean.packages.toArray();
+				return (XmlPackageBean) JOptionPane.showInputDialog(StatusDisplay.this, "Select package", "Launcher", JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 			}
-		} else {
-			logging.log(LogLevel.INFO, "No components to be updated");
-		}
+			
+			@Override
+			public boolean preDownload(List<UpdateBean> toDownload) {
+				PreviewDialog previewDialog = new PreviewDialog(StatusDisplay.this, toDownload);
+				previewDialog.setVisible(true);
+				
+				PreviewResult previewResult = previewDialog.getPreviewResult();
+				if (previewResult == PreviewResult.OK) {
+					// TODO: START DOWNLOAD
+					return true;
+				} else {
+					logging.log(LogLevel.INFO, "User cancelled preview");
+				}
+				return false;
+			}
+		};
+		
+		UpdateController con = new UpdateController(listener, "http://localhost:2345/web-package.xml");
+		con.setLogging(logging);
+		con.run();
+		
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
 		launcherRestartController.run();
 		
 		
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
-	}
-	
-
-	private List<ComponentBean> runXML(LauncherRestartController launcherRestartController) {
-		List<ComponentBean> components = null;
-		if (xmlFileChooser == null) {
-			xmlFileChooser = new JFileChooser(System.getProperty("user.dir"));
-			xmlFileChooser.setFileFilter(new FileNameExtensionFilter("XML Launcher Configuration", "xml"));
-			xmlFileChooser.setMultiSelectionEnabled(false);
-		}
-		int rc = xmlFileChooser.showOpenDialog(this);
-		if (rc == JFileChooser.APPROVE_OPTION) {
-			components = new ArrayList<>();
-			logging.log(LogLevel.INFO, "Read XML file '" + xmlFileChooser.getSelectedFile().getAbsolutePath() + "' ...");
-			XmlLauncherConfigBean cfg = (XmlLauncherConfigBean) JAXB.unmarshal(xmlFileChooser.getSelectedFile(), XmlLauncherConfigBean.class);
-			logging.log(LogLevel.INFO, "  Done!");
-			
-			logging.log(LogLevel.CONFIG,     "BASE_PATH     " + "'" + (cfg.basePath == null ? "Inherit" : cfg.basePath.getAbsolutePath()) + "'");
-			logging.log(LogLevel.CONFIG, cfg.packages.size() + " package(s)");
-			for (XmlPackageBean pkgBean : cfg.packages) {
-				logging.log(LogLevel.CONFIG, "-- PACKAGE --");
-				logging.log(LogLevel.CONFIG, "NAME          " + "'" + pkgBean.name + "'");
-				logging.log(LogLevel.CONFIG, "POST_CWD      " + "'" + pkgBean.postCwd + "'");
-				logging.log(LogLevel.CONFIG, "POST_COMMAND  " + "'" + pkgBean.postCommand + "'");
-				logging.log(LogLevel.CONFIG, "BASE_PATH     " + "'" + pkgBean.basePath + "'");
-				logging.log(LogLevel.CONFIG, "DEPENDS       " + "'" + pkgBean.depends + "'");
-				logging.log(LogLevel.CONFIG, pkgBean.components.size() + " component(s)");
-				for (XmlComponentBean cm : pkgBean.components) {
-					logging.log(LogLevel.CONFIG, "SOURCE        " + "'" + cm.source + "'");
-					logging.log(LogLevel.CONFIG, "TARGET        " + "'" + cm.target + "'");
-					logging.log(LogLevel.CONFIG, "COMPARE       " + "'" + cm.compare + "'");
-					logging.log(LogLevel.CONFIG, "REQUIRED      " + "'" + cm.required + "'");
-					logging.log(LogLevel.CONFIG, "VERSION       " + "'" + cm.version + "'");
-				}
-			}
-			
-			logging.log(LogLevel.INFO, "User selectes a package...");
-			Object sel = JOptionPane.showInputDialog(this, "Select a package", "Launch Package Selection", JOptionPane.QUESTION_MESSAGE, null, cfg.packages.toArray(), cfg.packages.get(0));
-			if (sel != null) {
-				logging.log(LogLevel.INFO, "User selected '" + sel.toString() + "'");
-				
-				// First sort the packages by their dependencies 
-				// [0] -> top 
-				// [1] -> depends on [0]
-				List<XmlPackageBean> sorted = new ArrayList<>();
-				XmlPackageBean pkg = (XmlPackageBean) sel;
-				while (pkg != null) {
-					sorted.add(0, pkg);
-					pkg = pkg.depends;
-				}
-				
-				for (int i = 0; i < sorted.size(); i++) {
-					pkg = sorted.get(i);
-					logging.log(LogLevel.INFO, "Add package '" + pkg.name + "'");
-					PackageBean pkgBean = new PackageBean();
-					pkgBean.setName(pkg.name);
-					pkgBean.setBasePath(pkg.basePath != null ? pkg.basePath : cfg.basePath);
-					pkgBean.setPostCommand(pkg.postCommand);
-					pkgBean.setPostCWD(pkg.postCwd == null ? null : new File(pkg.postCwd));
-					
-					// Components...
-					logging.log(LogLevel.INFO, "Add package components ...");
-					for (XmlComponentBean com : pkg.components) {
-						File sourceFile = new File(com.source);
-						File targetFile = new File(com.target);
-						ComponentBean comp = new ComponentBean();
-						comp.setCompare(com.compare == null ? null : new File(com.compare));
-						comp.setSource(sourceFile);
-						comp.setTarget(targetFile);
-						comp.setRequired(com.required);
-						
-						// Comparison
-						if (comp.getCompare() != null) {
-							if (comp.getSource().lastModified() > comp.getCompare().lastModified()) {
-								logging.log(LogLevel.INFO, "Add component '" + com.source + "'");
-								components.add(comp);
-							} else {
-								logging.log(LogLevel.INFO, "Skip component '" + com.source + "'");
-							}
-						} else {
-							if (comp.getSource().lastModified() > comp.getTarget().lastModified()) {
-								logging.log(LogLevel.INFO, "Add component '" + com.source + "'");
-								components.add(comp);
-							} else {
-								logging.log(LogLevel.INFO, "Skip component '" + com.source + "'");
-							}
-						}
-					}
-					// Set the package bean for post command
-					// by setting it in every iteration, the last iteration defines the command to be executed.
-					launcherRestartController.setActivePackageBean(pkgBean);
-					
-					// If we added some components do not add components from depending packages (just update this package)
-					if (!components.isEmpty()) {
-						break;
-					}
-				}
-			}
-		}
-		return components;
 	}
 
 	private void logBasicInfo() {
