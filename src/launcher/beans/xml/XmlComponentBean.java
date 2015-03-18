@@ -21,6 +21,14 @@ public class XmlComponentBean {
 	@XmlAttribute(name="version", required=false)
 	public String version;
 
+	public XmlComponentBean(XmlComponentBean copy) {
+		this.source = copy.source;
+		this.target = copy.target;
+		this.compare = copy.compare;
+		this.required = copy.required;
+		this.version = copy.version;
+	}
+
 	/**
 	 * 
 	 * @param other

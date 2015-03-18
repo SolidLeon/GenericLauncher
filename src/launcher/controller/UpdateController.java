@@ -41,10 +41,11 @@ public class UpdateController implements Runnable {
 	private XmlLauncherConfigBean downloadRemotePackage(String remotePath) {
 		XmlLauncherConfigBean result = null;
 		try {
+			logging.log(LogLevel.INFO, "Get launcher configuration from '" + remotePath + "'");
 			result = (XmlLauncherConfigBean) JAXB.unmarshal(remotePath, XmlLauncherConfigBean.class);
 		} catch (Exception ex) {
 			//ex.printStackTrace();
-			System.err.println("Can not download from '" + remotePath + "'");
+			logging.log(LogLevel.ERROR, "Can not get launcher configuration from '" + remotePath + "'");
 		}
 		return result;
 	}
@@ -56,9 +57,7 @@ public class UpdateController implements Runnable {
 		// 1) Download remote package declaration
 		XmlLauncherConfigBean remoteConfigBean = downloadRemotePackage(remotePath);
 		XmlLauncherConfigBean localConfigBean = downloadRemotePackage(localPath);
-		if (remoteConfigBean == null) {
-			System.err.println("Could not download remote launcher configuration.");
-		} else {
+		if (remoteConfigBean != null) {
 			if (localConfigBean == null) {
 				localConfigBean = new XmlLauncherConfigBean();
 				localConfigBean.basePath = remoteConfigBean.basePath;
@@ -68,8 +67,8 @@ public class UpdateController implements Runnable {
 			// 2) Select package
 			XmlPackageBean remotePackage = getPackageFromInterface(remoteConfigBean);
 			if (remotePackage != null) {
-				System.out.println("Remote package selected: '" + remotePackage.name + "'");
-				System.out.println("  " + remotePackage.components.size() + " component(s)");
+				logging.log(LogLevel.INFO, "Remote package selected: '" + remotePackage.name + "'");
+				logging.log(LogLevel.INFO, "  " + remotePackage.components.size() + " component(s)");
 				
 				// 3) Check if we have a local package declaration with the same name. Yes? -> 4; No? -> 5
 				XmlPackageBean localPackage = localConfigBean.getPackageByName(remotePackage.name);
@@ -84,30 +83,32 @@ public class UpdateController implements Runnable {
 					localPackage.components.addAll(remotePackage.components);
 					localConfigBean.packages.add(localPackage);
 					
-					System.out.println("No local package, download all components");
+					logging.log(LogLevel.INFO, "No local package, download all components");
 					for (XmlComponentBean remoteComponent : remotePackage.components) {
 						UpdateBean bean = new UpdateBean();
 						bean.remote = remoteComponent;
-						bean.local = null;
+						bean.local = new XmlComponentBean(remoteComponent);
+						bean.local.version = null;
 						bean.download = true;
 						toDownload.add(bean);
 					}
 				} else {
 					
 					// 4) Compare 
-					System.out.println("Compare remote <-> local ...");
+					logging.log(LogLevel.INFO, "Compare remote <-> local ...");
 					for (XmlComponentBean remoteComponentBean : remotePackage.components) {
 						XmlComponentBean localComponentBean = localPackage.getComponent(remoteComponentBean);					
 						if (localComponentBean == null) {
-							System.out.println("No local component for '" + remoteComponentBean.source + "'");
+							logging.log(LogLevel.INFO, "No local component for '" + remoteComponentBean.source + "'");
 							UpdateBean bean = new UpdateBean();
 							bean.remote = remoteComponentBean;
-							bean.local = null;
+							bean.local = new XmlComponentBean(remoteComponentBean);
+							bean.local.version = null;
 							bean.download = true;
 							toDownload.add(bean);
 							localPackage.components.add(remoteComponentBean);
 						} else {
-							System.out.println("Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
+							logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
 							if (remoteComponentBean.compare(localComponentBean) > 0) {
 								System.out.println("  Component added to download queue");
 								UpdateBean bean = new UpdateBean();
@@ -119,7 +120,8 @@ public class UpdateController implements Runnable {
 								File localFile = new File(remoteComponentBean.target);
 								if (!localFile.exists()) {
 									UpdateBean bean = new UpdateBean();
-									bean.local = null;
+									bean.local = new XmlComponentBean(remoteComponentBean);
+									bean.local.version = null;
 									bean.remote = remoteComponentBean;
 									toDownload.add(bean);
 								}
@@ -141,24 +143,9 @@ public class UpdateController implements Runnable {
 						logging.log(LogLevel.INFO, String.format("COMPARE  = '%s'", dl.compare));
 						logging.log(LogLevel.INFO, String.format("REQUIRED = '%s'", dl.required));
 						logging.log(LogLevel.INFO, String.format("VERSION  = '%s'", dl.version));
-						try {
-							File targetFile = new File(dl.target);
-							URL url = new URL(dl.source);
-							logging.log(LogLevel.INFO, String.format("Copy from '%s' to '%s'", url.toString(), targetFile.getAbsolutePath()));
-							try (BufferedInputStream in = new BufferedInputStream(url.openStream())) {
-								Files.copy(in, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-							}
-						} catch (Exception ex) {
-							logging.log(LogLevel.INFO, "Can not download '" + dl.source + "' to '" + dl.target + "', try file copy ...");
-							File sourceFile = new File(dl.source);
-							File targetFile = new File(dl.target);
-							try {
-								Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-							} catch (Exception ex2) {
-								logging.log(LogLevel.INFO, "Can not copy '" + sourceFile.getAbsolutePath() + "' to '" + targetFile.getAbsolutePath() + "'");
-							}
+						if (download(dl.source, dl.target)) {
+							bean.local.version = bean.remote.version;
 						}
-						bean.local.version = bean.remote.version;
 					}
 				}
 				File saveFile = new File(localPath);
@@ -171,6 +158,58 @@ public class UpdateController implements Runnable {
 				}
 			}
 		}
+	}
+
+	private boolean download(String source, String target) {
+		boolean ret = false;
+		
+		createDirectories(target);
+		
+		if (!downloadURL(source, target)) {
+			logging.log(LogLevel.INFO, "Can not download '" + source + "' to '" + target + "', try file copy ...");
+			File sourceFile = new File(source);
+			File targetFile = new File(target);
+			if (!downloadFile(sourceFile, targetFile)) {
+				logging.log(LogLevel.INFO, "Can not copy '" + sourceFile.getAbsolutePath() + "' to '" + targetFile.getAbsolutePath() + "'");
+			} else {
+				ret = true;
+				logging.log(LogLevel.INFO, "OK!");
+			}
+		} else {
+			ret = true;
+			logging.log(LogLevel.INFO, "OK!");
+		}
+		return ret;
+	}
+
+	private void createDirectories(String target) {
+		File targetFile = new File(target);
+		targetFile = targetFile.getParentFile();
+		targetFile.mkdirs();
+	}
+
+	private boolean downloadFile(File sourceFile, File targetFile) {
+		try {
+			logging.log(LogLevel.INFO, String.format("Copy from '%s' to '%s'", sourceFile.getAbsolutePath(), targetFile.getAbsolutePath()));
+			Files.copy(sourceFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		} catch (Exception ex2) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean downloadURL(String source, String target) {
+		try {
+			File targetFile = new File(target);
+			URL url = new URL(source);
+			logging.log(LogLevel.INFO, String.format("Download from '%s' to '%s'", url.toString(), targetFile.getAbsolutePath()));
+			try (BufferedInputStream in = new BufferedInputStream(url.openStream())) {
+				Files.copy(in, targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			}
+		} catch (Exception ex) {
+			return false;
+		}
+		return true;
 	}
 
 	/**
