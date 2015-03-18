@@ -29,6 +29,9 @@ public class XmlComponentBean {
 		this.version = copy.version;
 	}
 
+	public XmlComponentBean() {
+	}
+	
 	/**
 	 * 
 	 * @param other
