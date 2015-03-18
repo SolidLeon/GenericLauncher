@@ -12,6 +12,6 @@ public interface IUpdateListener {
 
 	XmlPackageBean selectPackage(XmlLauncherConfigBean remoteConfigBean);
 
-	void postUpdate(String logInfo, Runnable runner);
+	void postUpdate(boolean restart, String logInfo, Runnable runner);
 
 }

@@ -95,7 +95,7 @@ public class UpdateController implements Runnable {
 						if (packageUpdate.requiresRestart) {
 							logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
 						}
-						postUpdate("Post update execute '" + packageUpdate.postCommand  + "'", () -> {
+						postUpdate(packageUpdate.requiresRestart, "Post update execute '" + packageUpdate.postCommand  + "'", () -> {
 							try {
 								logging.logInfo("Execute '"+ packageUpdate.postCommand + "' ...");
 								Runtime.getRuntime().exec(packageUpdate.postCommand, null, new File(packageUpdate.postCwd));
@@ -109,7 +109,7 @@ public class UpdateController implements Runnable {
 						break;
 					} else if (ur == UpdateResult.NOTHING_UPDATED) {
 						logging.log(LogLevel.INFO, "Nothing updated!");
-						postUpdate("Post update execute '" + packageUpdate.postCommand  + "'", () -> {
+						postUpdate(packageUpdate.requiresRestart, "Post update execute '" + packageUpdate.postCommand  + "'", () -> {
 							try {
 								logging.logInfo("Execute '"+ packageUpdate.postCommand + "' ...");
 								Runtime.getRuntime().exec(packageUpdate.postCommand, null, new File(packageUpdate.postCwd));
@@ -123,9 +123,9 @@ public class UpdateController implements Runnable {
 		}
 	}
 
-	private void postUpdate(String logInfo, Runnable runner) {
+	private void postUpdate(boolean restart, String logInfo, Runnable runner) {
 		if (listener != null)
-			listener.postUpdate(logInfo, runner);
+			listener.postUpdate(restart, logInfo, runner);
 	}
 
 	/**
