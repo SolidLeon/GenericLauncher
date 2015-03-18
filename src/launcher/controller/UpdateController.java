@@ -46,6 +46,7 @@ public class UpdateController implements Runnable {
 		} catch (Exception ex) {
 			//ex.printStackTrace();
 			logging.log(LogLevel.ERROR, "Can not get launcher configuration from '" + remotePath + "'");
+			logging.log(LogLevel.DEBUG, ex.getMessage());
 		}
 		return result;
 	}
@@ -59,6 +60,7 @@ public class UpdateController implements Runnable {
 		XmlLauncherConfigBean localConfigBean = downloadRemotePackage(localPath);
 		if (remoteConfigBean != null) {
 			if (localConfigBean == null) {
+				logging.log(LogLevel.DEBUG, "No local configuration. Create new one!"); 
 				localConfigBean = new XmlLauncherConfigBean();
 				localConfigBean.basePath = remoteConfigBean.basePath;
 				localConfigBean.packages = new ArrayList<>();
@@ -183,9 +185,14 @@ public class UpdateController implements Runnable {
 	}
 
 	private void createDirectories(String target) {
-		File targetFile = new File(target);
-		targetFile = targetFile.getParentFile();
-		targetFile.mkdirs();
+		if (target != null) {
+			File targetFile = new File(target);
+			logging.log(LogLevel.INFO, "Create directories for '" + targetFile.getAbsolutePath() + "'");
+			targetFile = targetFile.getParentFile();
+			if (targetFile != null) {
+				targetFile.mkdirs();
+			}
+		}
 	}
 
 	private boolean downloadFile(File sourceFile, File targetFile) {
