@@ -109,6 +109,14 @@ public class UpdateController implements Runnable {
 						break;
 					} else if (ur == UpdateResult.NOTHING_UPDATED) {
 						logging.log(LogLevel.INFO, "Nothing updated!");
+						postUpdate("Post update execute '" + packageUpdate.postCommand  + "'", () -> {
+							try {
+								logging.logInfo("Execute '"+ packageUpdate.postCommand + "' ...");
+								Runtime.getRuntime().exec(packageUpdate.postCommand, null, new File(packageUpdate.postCwd));
+							} catch (IOException e) {
+								logging.printException(e);
+							}
+						});
 					}
 				}
 			}
