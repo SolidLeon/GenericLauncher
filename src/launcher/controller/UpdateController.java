@@ -91,8 +91,10 @@ public class UpdateController implements Runnable {
 				for (int i = 0; i < updateQueue.size(); i++) {
 					XmlPackageBean packageUpdate = updateQueue.get(i); 
 					UpdateResult ur = updatePackage(localConfigBean, packageUpdate);
-					if (ur == UpdateResult.OK && packageUpdate.requiresRestart) {
-						logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
+					if (ur == UpdateResult.OK) {
+						if (packageUpdate.requiresRestart) {
+							logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
+						}
 						postUpdate(() -> {
 							try {
 								logging.logInfo("Execute '"+ packageUpdate.postCommand + "' ...");
@@ -140,6 +142,7 @@ public class UpdateController implements Runnable {
 			localPackage.components = new ArrayList<>();
 			localPackage.components.addAll(remotePackage.components);
 			localPackage.version = null;
+			localPackage.requiresRestart = remotePackage.requiresRestart;
 			localConfigBean.packages.add(localPackage);
 			
 			logging.log(LogLevel.INFO, "No local package, download all components");
@@ -154,6 +157,7 @@ public class UpdateController implements Runnable {
 		} else {
 			
 			// 4) Compare 
+			logging.log(LogLevel.INFO, String.format("Compare package version remote(%s) <-> local(%s) => %d", remotePackage.version, localPackage.version, remotePackage.compare(localPackage)));
 			boolean packageOutdated = remotePackage.compare(localPackage) > 0;
 			if (packageOutdated) {
 				logging.log(LogLevel.INFO, "Package outdated ...");
@@ -178,7 +182,7 @@ public class UpdateController implements Runnable {
 					toDownload.add(bean);
 					localPackage.components.add(remoteComponentBean);
 				} else {
-					logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ")"  );
+					logging.log(LogLevel.INFO, "Compare '" + remoteComponentBean.source + "': remote(" + remoteComponentBean.version + ") <-> local(" + localComponentBean.version + ") => " + remoteComponentBean.compare(localComponentBean));
 					if (remoteComponentBean.compare(localComponentBean) > 0 || packageOutdated) {
 						System.out.println("  Component added to download queue");
 						UpdateBean bean = new UpdateBean();
@@ -187,8 +191,9 @@ public class UpdateController implements Runnable {
 						toDownload.add(bean);
 					} else {
 						// Check if the physical file is available, if not download it no matter what version!
-						File localFile = new File(remoteComponentBean.target);
+						File localFile = new File(remoteComponentBean.compare != null ? remoteComponentBean.compare : remoteComponentBean.target);
 						if (!localFile.exists()) {
+							logging.log(LogLevel.INFO, "Local component target file ('"+localFile.getAbsolutePath()+"') does not exist, download anyway!");
 							UpdateBean bean = new UpdateBean();
 							bean.local = new XmlComponentBean(remoteComponentBean);
 							bean.local.version = null; //Remove remote version, since local file is not versioned (so it gets proper shown in GUI)

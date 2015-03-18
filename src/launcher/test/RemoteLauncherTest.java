@@ -50,8 +50,17 @@ public class RemoteLauncherTest implements Runnable {
 					System.out.println("SERVER BOUND TO 2345");
 					while (true) {
 						try (Socket socket = server.accept()) {
+							
+							System.out.println("READ REQUEST");
+							BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+							String line = in.readLine();
+							System.out.println(line);
+						
+							String requestFile = line.substring("GET ".length(), line.length() - " HTTP/1.1".length());
+							
+							System.out.println("REQUEST FILE:  '" + requestFile + "'");
 							try (BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream())) {
-								File file = new File("C:\\DEPLOYMENT\\public\\web-package.xml");
+								File file = new File("C:\\DEPLOYMENT\\public\\" + requestFile);
 								if (file.exists()) {
 									out.write(	("HTTP/1.1 200 OK \r\n"+
 												"Content-Type: text/plain\r\n"+

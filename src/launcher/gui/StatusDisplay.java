@@ -301,8 +301,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		con.run();
 		
 		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
-		launcherRestartController.run();
-		
 		
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");

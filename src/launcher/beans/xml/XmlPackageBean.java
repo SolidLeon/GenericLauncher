@@ -67,7 +67,8 @@ public class XmlPackageBean {
 		if (other == null) 								return 1;
 		if (other.version == null && version == null) 	return 0;
 		if (other.version == null) 						return 1;
-		if (version == null) 							return -1;
+		if (version == null) 							return 1;
+		if (version.equals(other.version))				return 0;
 		String[] localVersion = version.split("\\.");
 		String[] otherVersion = other.version.split("\\.");
 		
