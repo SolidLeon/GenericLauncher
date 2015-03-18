@@ -293,8 +293,10 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			public void postUpdate(boolean restart, String logInfo, Runnable runner) {
 				logging.log(LogLevel.INFO, "Post update runner set to " + logInfo);
 				if (restart) {
+					logging.log(LogLevel.INFO, "Restart required!");
 					startButton.setEnabled(false);
 				}
+				closeButton.setToolTipText(logInfo);
 				setStatusCompletedExecCommandOnExit(runner);
 			}
 		};
