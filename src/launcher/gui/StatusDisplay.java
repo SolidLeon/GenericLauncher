@@ -7,8 +7,11 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,8 +66,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	private Runnable exitRunner;
 	private Logging logging;
 	
-	private String lastModeSelection = "XML";
-	private JFileChooser xmlFileChooser;
+	private String selectedServer;
 	
 	public StatusDisplay() {
 		setPreferredSize(new Dimension(800, 600));
@@ -264,9 +266,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		
 		logging.getStatusListener().setOverallProgress(0, 0, 4);
 		
-		logging.getStatusListener().setCurrentProgress(0, 0, 0, "Initialize launcher restart ...");
-		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
-
 		IUpdateListener listener = new IUpdateListener() {
 			@Override
 			public XmlPackageBean selectPackage(XmlLauncherConfigBean remoteConfigBean) {
@@ -297,12 +296,33 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			}
 		};
 		
-		UpdateController con = new UpdateController(listener, "http://localhost:2345/web-package.xml");
-		con.setLogging(logging);
-		con.run();
 		
-		// CHECK IF SOMETHING WAS UPDATED THAT REQUIRES A LAUNCHER RESTART
+		File serverListFile = new File("serverlist.svl");
+		logging.log(LogLevel.INFO, "Read server list '" + serverListFile.getAbsolutePath() + "' ...");
+		List<String> serverListEntries = new ArrayList<>();
+		try {
+			serverListEntries = Files.readAllLines(serverListFile.toPath(), Charset.defaultCharset());
+		} catch (IOException e) {
+			logging.printException(e);
+		}
 		
+		if (serverListEntries.isEmpty()) {
+			logging.log(LogLevel.INFO, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
+		} else {
+			selectedServer = serverListEntries.get(0);
+			if (serverListEntries.size() > 1) {
+				selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverListEntries.toArray(), selectedServer);
+			}
+			if (selectedServer != null) {
+
+				logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "'");
+				UpdateController con = new UpdateController(listener, selectedServer);
+				con.setLogging(logging);
+				con.run();
+			} else {
+				logging.log(LogLevel.INFO, "No server selected!");
+			}
+		}
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
 	}
