@@ -277,15 +277,17 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			
 			@Override
 			public boolean preDownload(List<UpdateBean> toDownload) {
-				PreviewDialog previewDialog = new PreviewDialog(StatusDisplay.this, toDownload);
-				previewDialog.setVisible(true);
-				
-				PreviewResult previewResult = previewDialog.getPreviewResult();
-				if (previewResult == PreviewResult.OK) {
-					// TODO: START DOWNLOAD
-					return true;
-				} else {
-					logging.log(LogLevel.INFO, "User cancelled preview");
+				if (toDownload != null && toDownload.size() > 0) {
+					PreviewDialog previewDialog = new PreviewDialog(StatusDisplay.this, toDownload);
+					previewDialog.setVisible(true);
+					
+					PreviewResult previewResult = previewDialog.getPreviewResult();
+					if (previewResult == PreviewResult.OK) {
+						// TODO: START DOWNLOAD
+						return true;
+					} else {
+						logging.log(LogLevel.INFO, "User cancelled preview");
+					}
 				}
 				return false;
 			}
