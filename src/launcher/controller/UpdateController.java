@@ -2,6 +2,7 @@ package launcher.controller;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -92,6 +93,14 @@ public class UpdateController implements Runnable {
 					UpdateResult ur = updatePackage(localConfigBean, packageUpdate);
 					if (ur == UpdateResult.OK && packageUpdate.requiresRestart) {
 						logging.log(LogLevel.INFO, "Package '" + packageUpdate.name + "' requires restart!");
+						postUpdate(() -> {
+							try {
+								logging.logInfo("Execute '"+ packageUpdate.postCommand + "' ...");
+								Runtime.getRuntime().exec(packageUpdate.postCommand, null, new File(packageUpdate.postCwd));
+							} catch (IOException e) {
+								logging.printException(e);
+							}
+						});
 						break;
 					} else if (ur == UpdateResult.CANCELLED) {
 						logging.log(LogLevel.INFO, "Update cancelled!");
@@ -102,6 +111,10 @@ public class UpdateController implements Runnable {
 				}
 			}
 		}
+	}
+
+	private void postUpdate(Runnable runner) {
+		listener.postUpdate(runner);
 	}
 
 	/**

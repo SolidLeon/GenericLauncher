@@ -268,7 +268,6 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		LauncherRestartController launcherRestartController = new LauncherRestartController(logging);
 
 		IUpdateListener listener = new IUpdateListener() {
-			
 			@Override
 			public XmlPackageBean selectPackage(XmlLauncherConfigBean remoteConfigBean) {
 				Object[] options = remoteConfigBean.packages.toArray();
@@ -289,6 +288,11 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					}
 				}
 				return true;
+			}
+			
+			@Override
+			public void postUpdate(Runnable runner) {
+				setStatusCompletedExecCommandOnExit(runner);
 			}
 		};
 		
