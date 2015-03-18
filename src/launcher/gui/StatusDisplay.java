@@ -249,7 +249,8 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		@Override
 		protected Void doInBackground() throws Exception {
 			if (exitRunner != null) {
-				exitRunner.run();
+				if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(StatusDisplay.this, "Execute '" + closeButton.getToolTipText() + "'?", "Launcher", JOptionPane.YES_NO_OPTION))
+					exitRunner.run();
 			}
 			return null;
 		}
