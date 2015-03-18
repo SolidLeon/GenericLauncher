@@ -17,5 +17,60 @@ public class XmlComponentBean {
 
 	@XmlAttribute(name="required", required=false)
 	public boolean required = true;
+	
+	@XmlAttribute(name="version", required=false)
+	public String version;
+
+	public XmlComponentBean(XmlComponentBean copy) {
+		this.source = copy.source;
+		this.target = copy.target;
+		this.compare = copy.compare;
+		this.required = copy.required;
+		this.version = copy.version;
+	}
+
+	public XmlComponentBean() {
+	}
+	
+	/**
+	 * 
+	 * @param other
+	 * @return 	1: This is newer
+	 * 			0: Both are on same version
+	 * 		   -1: This is older
+	 */
+	public int compare(XmlComponentBean other) {
+		if (other == null) 								return 1;
+		if (other.version == null && version == null) 	return 0;
+		if (other.version == null) 						return 1;
+		if (version == null) 							return 1;
+		if (version.equals(other.version))				return 0;
+		String[] localVersion = version.split("\\.");
+		String[] otherVersion = other.version.split("\\.");
+		
+		if (otherVersion.length != 2) 					return 1; 	// Invalid other.version
+		if (localVersion.length != 2)					return -1; 	// Invalid this.version
+		int localMinor = 0;
+		int localMajor = 0;
+		int otherMinor = 0;
+		int otherMajor = 0;
+		try {
+			otherMajor = Integer.parseInt(otherVersion[0]);
+			otherMinor = Integer.parseInt(otherVersion[1]);
+		} catch (Exception ex) {
+			return 1;// Invalid other.version
+		}
+		try {
+			localMajor = Integer.parseInt(localVersion[0]);
+			localMinor = Integer.parseInt(localVersion[1]);
+		} catch (Exception ex) {
+			return -1;// Invalid this.version
+		}
+		if (localMajor < otherMajor) return -1;
+		if (localMajor > otherMajor) return 1;
+		if (localMinor < otherMinor) return -1;
+		if (localMinor > otherMinor) return 1;
+		return 0;
+	}
 
 }

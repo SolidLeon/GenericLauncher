@@ -1,27 +1,20 @@
 package launcher.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
-import sun.util.logging.resources.logging_fr;
-import launcher.beans.ComponentBean;
+import launcher.beans.UpdateBean;
 
 public class PreviewDialog extends JDialog {
 
@@ -31,17 +24,16 @@ public class PreviewDialog extends JDialog {
 	};
 	
 	private JTable table;
-	private List<ComponentBean> componentBeans;
+	private List<UpdateBean> componentBeans;
 	private JButton okButton;
 	private JButton cancelButton;
 	private PreviewResult previewResult = null;
 	
-	public PreviewDialog(JFrame owner, List<ComponentBean> componentBeans) {
+	public PreviewDialog(JFrame owner, List<UpdateBean> componentBeans) {
 		super(owner, true);
 		this.componentBeans = componentBeans;
 //		setDefaultCloseOperation(JDialog.HIDE_ON_CLOSE);
 		table = new JTable(new PreviewTableModel());
-		table.setDefaultRenderer(File.class, new FileCellRenderer());
 		add(new JScrollPane(table));
 		JPanel buttonPanel = new JPanel(new FlowLayout());
 		cancelButton = new JButton("Cancel");
@@ -64,8 +56,8 @@ public class PreviewDialog extends JDialog {
 			previewResult = PreviewResult.OK;
 			
 			for (int i = 0; i < componentBeans.size(); i++) {
-				ComponentBean componentBean = componentBeans.get(i);
-				if (!componentBean.isDownload()) componentBeans.remove(i--);
+				UpdateBean componentBean = componentBeans.get(i);
+				if (!componentBean.download) componentBeans.remove(i--);
 			}
 			
 			setVisible(false);
@@ -82,26 +74,6 @@ public class PreviewDialog extends JDialog {
 		return previewResult;
 	}
 	
-	class FileCellRenderer extends DefaultTableCellRenderer {
-		@Override
-		public Component getTableCellRendererComponent(JTable table,
-				Object value, boolean isSelected, boolean hasFocus, int row,
-				int column) {
-			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-					row, column);
-			
-			if (value != null && value instanceof File) {
-				File f = (File) value;
-				if (!f.exists())
-					lbl.setForeground(Color.red.darker());
-				else
-					lbl.setForeground(Color.green.darker());
-				lbl.setText(f.getName());
-				lbl.setToolTipText(f.getAbsolutePath());
-			}
-			return lbl;
-		}
-	}
 	
 	class PreviewTableModel extends DefaultTableModel {
 
@@ -111,8 +83,8 @@ public class PreviewDialog extends JDialog {
 			// column 0 is "download" so it should be only editable if the
 			// required flag for the component at "row" is false
 			if (column == 0) {
-				ComponentBean component = componentBeans.get(row);
-				return !component.isRequired();
+				UpdateBean component = componentBeans.get(row);
+				return !component.remote.required;
 			}
 			
 			return false;
@@ -124,15 +96,13 @@ public class PreviewDialog extends JDialog {
 			case 0: 
 				return Boolean.class;
 			case 1:
-				return File.class;
+				return String.class;
 			case 2: 
 				return String.class;
 			case 3:
-				return File.class;
+				return String.class;
 			case 4:
 				return String.class;
-			case 5: 
-				return File.class;
 			default:
 				return null;
 			}
@@ -141,12 +111,11 @@ public class PreviewDialog extends JDialog {
 		@Override
 		public String getColumnName(int column) {
 			switch (column) {
-			case 0: return "Download";
-			case 1: return "Source";
-			case 2: return "Version";
-			case 3: return "Target";
-			case 4: return "Version";
-			case 5: return "Compare";
+			case 0: return "";
+			case 1: return "File";
+			case 2: return "Remote Version";
+			case 3: return "Local Version";
+			case 4: return "Local Compare File";
 			default:
 				return null;
 			}
@@ -154,7 +123,7 @@ public class PreviewDialog extends JDialog {
 		
 		@Override
 		public int getColumnCount() {
-			return 6;
+			return 5;
 		}
 		
 		@Override
@@ -164,20 +133,18 @@ public class PreviewDialog extends JDialog {
 		
 		@Override
 		public Object getValueAt(int row, int column) {
-			ComponentBean bean = componentBeans.get(row);
+			UpdateBean bean = componentBeans.get(row);
 			switch (column) {
 			case 0:
-				return bean.isDownload();
+				return bean.download;
 			case 1:
-				return bean.getSource();
+				return bean.remote.source;
 			case 2: 
-				return bean.getSource().lastModified();
+				return bean.remote.version;
 			case 3:
-				return bean.getTarget();
+				return bean.local == null ? "-" : bean.local.version;
 			case 4:
-				return bean.getTarget().lastModified();
-			case 5:
-				return bean.getCompare() == null ? "" : bean.getCompare();
+				return bean.remote.compare == null ? "" : bean.remote.compare;
 			default:
 				return null;
 			}
@@ -188,8 +155,8 @@ public class PreviewDialog extends JDialog {
 			// "Download" column
 			if (column == 0) {
 				boolean newValue = (boolean) aValue;
-				ComponentBean componentBean = componentBeans.get(row);
-				componentBean.setDownload(newValue);
+				UpdateBean componentBean = componentBeans.get(row);
+				componentBean.download = newValue;
 				fireTableRowsUpdated(row, row);
 			} else {
 				super.setValueAt(aValue, row, column);

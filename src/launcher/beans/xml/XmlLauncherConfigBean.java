@@ -16,6 +16,14 @@ public class XmlLauncherConfigBean {
 	@XmlElement(name="package", type=XmlPackageBean.class)
 	public List<XmlPackageBean> packages;
 
+	public XmlPackageBean getPackageByName(String name) {
+		if (name != null)
+			for (XmlPackageBean pkg : packages)
+				if (name.equals(pkg.name))
+					return pkg;
+		return null;
+	}
+
 
 	
 	
