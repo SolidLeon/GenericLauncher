@@ -101,6 +101,12 @@ public class UpdateController implements Runnable {
 					if (packageOutdated) {
 						logging.log(LogLevel.INFO, "Package outdated ...");
 						localPackage.version = remotePackage.version; //Update version so the new version gets written to local configuration
+						localPackage.basePath = remotePackage.basePath;
+						localPackage.depends = remotePackage.depends;
+						localPackage.name = remotePackage.name;
+						localPackage.postCommand = remotePackage.postCommand;
+						localPackage.postCwd = remotePackage.postCwd;
+						logging.log(LogLevel.FINE, "Local package information updated!");
 					}
 					logging.log(LogLevel.INFO, "Compare remote <-> local ...");
 					for (XmlComponentBean remoteComponentBean : remotePackage.components) {
