@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -56,6 +57,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	private JTextPane text;
 	/** OutputStream redirecting output to JTextArea 'text' */
 	private OutputStream textOut;
+	private JCheckBox closeCheckbox;
 	private JButton closeButton;
 	private JButton startButton;
 	/** Runnable object to 'run' close button is pressed and before disposing */
@@ -92,13 +94,18 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		add(new JScrollPane(text), BorderLayout.CENTER);
-		closeButton = new JButton("Close");
+		closeCheckbox = new JCheckBox("Close on launch");
+		closeButton = new JButton("Launch");
+		closeButton.setEnabled(false);
 		closeButton.addActionListener(e -> new RunWorker().execute());
 		startButton = new JButton("Start");
 		startButton.addActionListener(e -> run());
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
 		buttonPanel.add(startButton);
-		buttonPanel.add(closeButton);
+		JPanel closePanel = new JPanel(new BorderLayout());
+		closePanel.add(closeCheckbox, BorderLayout.EAST);
+		closePanel.add(closeButton, BorderLayout.CENTER);
+		buttonPanel.add(closePanel);
 		add(buttonPanel, BorderLayout.SOUTH);
 		
 		textOut = new OutputStream() {
@@ -118,6 +125,8 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			public void windowClosing(WindowEvent e) {
 				if (closeButton.isEnabled()) {
 					closeButton.doClick();
+				} else if (startButton.isEnabled()) {
+					dispose();
 				} else {
 					JOptionPane.showMessageDialog(StatusDisplay.this, "Cannot close the window right now!");
 				}
@@ -212,8 +221,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	 * - Sets 'Done!' as curren progress text
 	 */
 	public void setStatusCompleted() {
-		closeButton.setEnabled(true);
-		closeButton.setText(exitRunner == null ? "Close" : "Launch & Close...");
+		closeButton.setEnabled(exitRunner != null);
 		overallProgress.setValue(overallProgress.getMaximum());
 		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
@@ -253,7 +261,8 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		
 		@Override
 		protected void done() {
-			dispose();
+			if (closeCheckbox.isSelected())
+				dispose();
 		}
 	}
 	
