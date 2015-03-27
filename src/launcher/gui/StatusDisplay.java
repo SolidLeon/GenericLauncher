@@ -33,6 +33,7 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.xml.bind.JAXB;
 
 import launcher.Launcher;
 import launcher.Logging;
@@ -40,6 +41,7 @@ import launcher.Logging.LogLevel;
 import launcher.beans.UpdateBean;
 import launcher.beans.xml.XmlLauncherConfigBean;
 import launcher.beans.xml.XmlPackageBean;
+import launcher.beans.xml.XmlServerList;
 import launcher.controller.IUpdateListener;
 import launcher.controller.UpdateController;
 import launcher.gui.PreviewDialog.PreviewResult;
@@ -330,31 +332,30 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 			serverListFile = serverlistFileChooser.getSelectedFile();
 			if (serverListFile.exists()) {
 				logging.log(LogLevel.INFO, "Read server list '" + serverListFile.getAbsolutePath() + "' ...");
-				List<String> serverListEntries = new ArrayList<>();
+				XmlServerList serverList = null;
 				try {
-					serverListEntries = Files.readAllLines(serverListFile.toPath(), Charset.defaultCharset());
-				} catch (IOException e) {
-					logging.printException(e);
+					serverList = JAXB.unmarshal(serverListFile, XmlServerList.class);
+				} catch (Exception ex) {
+					logging.printException(ex);
 				}
-				
-				for (int i = 0; i < serverListEntries.size(); i++)
-					if (serverListEntries.get(i).trim().charAt(0) == '#') serverListEntries.remove(i--);
-				
-				if (serverListEntries.isEmpty()) {
-					logging.log(LogLevel.ERROR, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
+				if (serverList == null) {
+					logging.log(LogLevel.ERROR, "Invalid serverlist xml!");
 				} else {
-					if (selectedServer == null) selectedServer = serverListEntries.get(0);
-					if (serverListEntries.size() > 1) {
-						selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverListEntries.toArray(), selectedServer);
-					}
-					if (selectedServer != null) {
-						String path = selectedServer.substring(selectedServer.indexOf('=') + 1).trim();
-						logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + path + "')");
-						UpdateController con = new UpdateController(listener, path);
-						con.setLogging(logging);
-						con.run();
+					if (serverList.entries.isEmpty()) {
+						logging.log(LogLevel.ERROR, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
 					} else {
-						logging.log(LogLevel.ERROR, "No server selected!");
+						if (selectedServer == null) selectedServer = serverList.entries.get(0);
+						if (serverList.entries.size() > 1) {
+							selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverList.entries.toArray(), selectedServer);
+						}
+						if (selectedServer != null) {
+							logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + selectedServer + "')");
+							UpdateController con = new UpdateController(listener, selectedServer);
+							con.setLogging(logging);
+							con.run();
+						} else {
+							logging.log(LogLevel.ERROR, "No server selected!");
+						}
 					}
 				}
 			} else {
