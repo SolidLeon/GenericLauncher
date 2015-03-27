@@ -125,13 +125,13 @@ public class Logging {
 		log(LogLevel.DEBUG, s);
 	}
 	public void log(LogLevel logLevel, String s) {
-		s = String.format("[%s %8s]:  %s%n", sdf.format(new Date()), logLevel.name(), s);
+		s = String.format("[%s] [%s %8s]:  %s%n", Thread.currentThread().getName(), sdf.format(new Date()), logLevel.name(), s);
 		System.out.printf(s);
 		statusListener.appendText(logLevel.fg, logLevel.bg, s);
 		
 	}
 	public void logEmptyLine(){
-		System.out.println();
+		System.out.println(Thread.currentThread().getName());
 		statusListener.appendText(Color.black, Color.white, String.format("%n"));
 	}
 }
