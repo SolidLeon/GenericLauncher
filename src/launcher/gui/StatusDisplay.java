@@ -18,6 +18,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -26,6 +27,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.SimpleAttributeSet;
@@ -66,7 +68,21 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private String selectedServer;
 	
+	private JFileChooser serverlistFileChooser;
+	// Initialize with default server list
+	private File serverListFile = new File("serverlist.svl");
+	
 	public StatusDisplay() {
+		// if the default serverlist exists initialize the serverlist file chooser with it, otherwise use the CWD
+		if (serverListFile.exists())
+			serverlistFileChooser = new JFileChooser(serverListFile);
+		else
+			serverlistFileChooser = new JFileChooser(System.getProperty("user.dir"));
+		
+		serverlistFileChooser.setDialogTitle("Select serverlist ...");
+		serverlistFileChooser.setFileFilter(new FileNameExtensionFilter("ServerList XML", "xml"));
+		serverlistFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		
 		setPreferredSize(new Dimension(800, 600));
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setLayout(new BorderLayout());
@@ -308,38 +324,43 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		};
 		
 		
-		File serverListFile = new File("serverlist.svl");
-		if (serverListFile.exists()) {
-			logging.log(LogLevel.INFO, "Read server list '" + serverListFile.getAbsolutePath() + "' ...");
-			List<String> serverListEntries = new ArrayList<>();
-			try {
-				serverListEntries = Files.readAllLines(serverListFile.toPath(), Charset.defaultCharset());
-			} catch (IOException e) {
-				logging.printException(e);
-			}
-			
-			for (int i = 0; i < serverListEntries.size(); i++)
-				if (serverListEntries.get(i).trim().charAt(0) == '#') serverListEntries.remove(i--);
-			
-			if (serverListEntries.isEmpty()) {
-				logging.log(LogLevel.ERROR, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
-			} else {
-				if (selectedServer == null) selectedServer = serverListEntries.get(0);
-				if (serverListEntries.size() > 1) {
-					selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverListEntries.toArray(), selectedServer);
+		
+		int rc = serverlistFileChooser.showOpenDialog(this);
+		if (rc == JFileChooser.APPROVE_OPTION) {
+			serverListFile = serverlistFileChooser.getSelectedFile();
+			if (serverListFile.exists()) {
+				logging.log(LogLevel.INFO, "Read server list '" + serverListFile.getAbsolutePath() + "' ...");
+				List<String> serverListEntries = new ArrayList<>();
+				try {
+					serverListEntries = Files.readAllLines(serverListFile.toPath(), Charset.defaultCharset());
+				} catch (IOException e) {
+					logging.printException(e);
 				}
-				if (selectedServer != null) {
-					String path = selectedServer.substring(selectedServer.indexOf('=') + 1).trim();
-					logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + path + "')");
-					UpdateController con = new UpdateController(listener, path);
-					con.setLogging(logging);
-					con.run();
+				
+				for (int i = 0; i < serverListEntries.size(); i++)
+					if (serverListEntries.get(i).trim().charAt(0) == '#') serverListEntries.remove(i--);
+				
+				if (serverListEntries.isEmpty()) {
+					logging.log(LogLevel.ERROR, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
 				} else {
-					logging.log(LogLevel.ERROR, "No server selected!");
+					if (selectedServer == null) selectedServer = serverListEntries.get(0);
+					if (serverListEntries.size() > 1) {
+						selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverListEntries.toArray(), selectedServer);
+					}
+					if (selectedServer != null) {
+						String path = selectedServer.substring(selectedServer.indexOf('=') + 1).trim();
+						logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + path + "')");
+						UpdateController con = new UpdateController(listener, path);
+						con.setLogging(logging);
+						con.run();
+					} else {
+						logging.log(LogLevel.ERROR, "No server selected!");
+					}
 				}
+			} else {
+				logging.log(LogLevel.ERROR, "Server list '" + serverListFile.getAbsolutePath() + "' does not exist!");
 			}
-		} else {
-			logging.log(LogLevel.ERROR, "Server list '" + serverListFile.getAbsolutePath() + "' does not exist!");
+		
 		}
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
