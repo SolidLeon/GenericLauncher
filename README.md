@@ -1,6 +1,6 @@
 # GenericLauncher
 
-An self-updating launcher.
+An self-updating launcher. (In combination with my bootstrap project and appropriate package declarations.)
 
 ## Configuration
 
