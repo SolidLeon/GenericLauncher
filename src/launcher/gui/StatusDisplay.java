@@ -62,7 +62,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	/** OutputStream redirecting output to JTextArea 'text' */
 	private OutputStream textOut;
 	private JCheckBox closeCheckbox;
-	private JButton closeButton;
+	private JButton launchButton;
 	private JButton startButton;
 	/** Runnable object to 'run' close button is pressed and before disposing */
 	private Runnable exitRunner;
@@ -118,16 +118,16 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		
 		add(new JScrollPane(text), BorderLayout.CENTER);
 		closeCheckbox = new JCheckBox("Close on launch");
-		closeButton = new JButton("Launch");
-		closeButton.setEnabled(false);
-		closeButton.addActionListener(e -> new RunWorker().execute());
+		launchButton = new JButton("Launch");
+		launchButton.setEnabled(false);
+		launchButton.addActionListener(e -> new RunWorker().execute());
 		startButton = new JButton("Start");
 		startButton.addActionListener(e -> run());
 		JPanel buttonPanel = new JPanel(new GridLayout(1, 2));
 		buttonPanel.add(startButton);
 		JPanel closePanel = new JPanel(new BorderLayout());
 		closePanel.add(closeCheckbox, BorderLayout.EAST);
-		closePanel.add(closeButton, BorderLayout.CENTER);
+		closePanel.add(launchButton, BorderLayout.CENTER);
 		buttonPanel.add(closePanel);
 		add(buttonPanel, BorderLayout.SOUTH);
 		
@@ -146,9 +146,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				if (closeButton.isEnabled()) {
-					closeButton.doClick();
-				} else if (startButton.isEnabled()) {
+				if (startButton.isEnabled()) {
 					dispose();
 				} else {
 					JOptionPane.showMessageDialog(StatusDisplay.this, "Cannot close the window right now!");
@@ -244,7 +242,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	 * - Sets 'Done!' as curren progress text
 	 */
 	public void setStatusCompleted() {
-		closeButton.setEnabled(exitRunner != null);
+		launchButton.setEnabled(exitRunner != null);
 		overallProgress.setValue(overallProgress.getMaximum());
 		currentProgress.setMaximum(100);
 		setCurrentProgressToMax();
@@ -276,7 +274,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		@Override
 		protected Void doInBackground() throws Exception {
 			if (exitRunner != null) {
-				if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(StatusDisplay.this, "Execute '" + closeButton.getToolTipText() + "'?", "Launcher", JOptionPane.YES_NO_OPTION))
+				if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(StatusDisplay.this, "Execute '" + launchButton.getToolTipText() + "'?", "Launcher", JOptionPane.YES_NO_OPTION))
 					exitRunner.run();
 			}
 			return null;
@@ -291,7 +289,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private void run() {
 		
-		closeButton.setEnabled(false);
+		launchButton.setEnabled(false);
 		
 		logging.getStatusListener().setOverallProgress(0, 0, 4);
 		
@@ -325,7 +323,7 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 					logging.log(LogLevel.INFO, "Restart required!");
 					startButton.setEnabled(false);
 				}
-				closeButton.setToolTipText(logInfo);
+				launchButton.setToolTipText(logInfo);
 				setStatusCompletedExecCommandOnExit(runner);
 			}
 		};
