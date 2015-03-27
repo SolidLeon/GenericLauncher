@@ -72,14 +72,11 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 	
 	private JFileChooser serverlistFileChooser;
 	// Initialize with default server list
-	private File serverListFile = new File("serverlist.svl");
+	private String serverListPath = "serverlist.xml";
 	
 	public StatusDisplay() {
 		// if the default serverlist exists initialize the serverlist file chooser with it, otherwise use the CWD
-		if (serverListFile.exists())
-			serverlistFileChooser = new JFileChooser(serverListFile);
-		else
-			serverlistFileChooser = new JFileChooser(System.getProperty("user.dir"));
+		serverlistFileChooser = new JFileChooser(System.getProperty("user.dir"));
 		
 		serverlistFileChooser.setDialogTitle("Select serverlist ...");
 		serverlistFileChooser.setFileFilter(new FileNameExtensionFilter("ServerList XML", "xml"));
@@ -331,43 +328,49 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		
 		
 		int rc = serverlistFileChooser.showOpenDialog(this);
-		if (rc == JFileChooser.APPROVE_OPTION) {
-			serverListFile = serverlistFileChooser.getSelectedFile();
-			if (serverListFile.exists()) {
-				logging.log(LogLevel.INFO, "Read server list '" + serverListFile.getAbsolutePath() + "' ...");
-				XmlServerList serverList = null;
-				try {
-					serverList = JAXB.unmarshal(serverListFile, XmlServerList.class);
-				} catch (Exception ex) {
-					logging.printException(ex);
-				}
-				if (serverList == null) {
-					logging.log(LogLevel.ERROR, "Invalid serverlist xml!");
-				} else {
-					if (serverList.entries.isEmpty()) {
-						logging.log(LogLevel.ERROR, "No servers specified in '" + serverListFile.getAbsolutePath() + "'!");
-					} else {
-						if (selectedServer == null) selectedServer = serverList.entries.get(0);
-						if (serverList.entries.size() > 1) {
-							selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverList.entries.toArray(), selectedServer);
-						}
-						if (selectedServer != null) {
-							logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + selectedServer + "')");
-							UpdateController con = new UpdateController(listener, selectedServer);
-							con.setLogging(logging);
-							con.run();
-						} else {
-							logging.log(LogLevel.ERROR, "No server selected!");
-						}
-					}
-				}
+		if (rc == JFileChooser.CANCEL_OPTION) {
+			serverListPath = JOptionPane.showInputDialog("Server list xml URL:");
+			if (serverListPath == null) {
+				logging.log(LogLevel.INFO, "User cancelled!");
 			} else {
-				logging.log(LogLevel.ERROR, "Server list '" + serverListFile.getAbsolutePath() + "' does not exist!");
+				readServerList(listener);
 			}
-		
+		} else if (rc == JFileChooser.APPROVE_OPTION) {
+			serverListPath = serverlistFileChooser.getSelectedFile().getAbsolutePath();
+			readServerList(listener);
 		}
 		setStatusCompleted(); //// SolidLeon #4 20150227 - we set the overall status so even if the user cancels the end-state is completed
 		logging.log(LogLevel.FINE, "Done!");
+	}
+
+	private void readServerList(IUpdateListener listener) {
+		logging.log(LogLevel.INFO, "Read server list from '" + serverListPath + "' ...");
+		XmlServerList serverList = null;
+		try {
+			serverList = JAXB.unmarshal(serverListPath, XmlServerList.class);
+		} catch (Exception ex) {
+			logging.printException(ex);
+		}
+		if (serverList == null) {
+			logging.log(LogLevel.ERROR, "Invalid serverlist xml!");
+		} else {
+			if (serverList.entries.isEmpty()) {
+				logging.log(LogLevel.ERROR, "No servers specified in '" + serverListPath + "'!");
+			} else {
+				if (selectedServer == null) selectedServer = serverList.entries.get(0);
+				if (serverList.entries.size() > 1) {
+					selectedServer = (String) JOptionPane.showInputDialog(this, "Select a server", "Launcher", JOptionPane.QUESTION_MESSAGE, null, serverList.entries.toArray(), selectedServer);
+				}
+				if (selectedServer != null) {
+					logging.log(LogLevel.INFO, "Selected server '" + selectedServer + "' ('" + selectedServer + "')");
+					UpdateController con = new UpdateController(listener, selectedServer);
+					con.setLogging(logging);
+					con.run();
+				} else {
+					logging.log(LogLevel.ERROR, "No server selected!");
+				}
+			}
+		}
 	}
 
 	private void logBasicInfo() {
