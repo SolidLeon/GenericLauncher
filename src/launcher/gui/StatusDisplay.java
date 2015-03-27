@@ -105,7 +105,12 @@ public class StatusDisplay extends JFrame implements IStatusListener {
 		progressPanel.add(progressLabelPanel, BorderLayout.WEST);
 		progressPanel.add(progressBarPanel, BorderLayout.CENTER);
 		add(progressPanel, BorderLayout.NORTH);
-		text = new JTextPane();
+		text = new JTextPane() {
+			@Override
+			public boolean getScrollableTracksViewportWidth() {
+				return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+			}
+		};
 		text.setEditable(false);
 		text.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		DefaultCaret caret = (DefaultCaret)text.getCaret();
